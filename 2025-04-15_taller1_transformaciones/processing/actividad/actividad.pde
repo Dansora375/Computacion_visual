@@ -1,32 +1,32 @@
 void setup() {
-  size(600, 600, P3D);  // Sketch en 3D
-  noStroke();
+  size(600, 600, P3D);  // 3D sketch window
+  noStroke();           // Disable stroke for shapes
 }
 
 void draw() {
-  background(30);
-  lights();  // Luz básica
+  background(30);       // Dark background
+  lights();             // Enable default lighting
 
-  float t = millis() / 1000.0;  // Tiempo en segundos
+  float t = millis() / 1000.0;  // Time in seconds
 
-  pushMatrix();
+  pushMatrix();         // Save the current transformation state
 
-  // Movimiento ondulado (trayectoria senoidal en X y Z)
+  // Wavy motion (sine wave path in X and Z)
   float x = cos(t) * 100;
   float z = sin(t) * 100;
-  translate(width/2 + x, height/2, z);
+  translate(width / 2 + x, height / 2, z);  // Move the cube in a circular path
 
-  // Rotación continua sobre X e Y
+  // Continuous rotation around X and Y axes
   rotateX(t);
   rotateY(t * 1.5);
 
-  // Escalado suave y cíclico
-  float s = 50 + sin(t * 2) * 20;
-  scale(s / 50.0);  // Escalamos proporcional al tamaño base
+  // Smooth cyclic scaling
+  float s = 50 + sin(t * 2) * 20;  // Varies between 30 and 70
+  scale(s / 50.0);  // Scale relative to base size
 
-  // Cubo
-  fill(100, 180, 255);
+  // Draw the cube
+  fill(100, 180, 255);  // Light blue color
   box(50);
 
-  popMatrix();
+  popMatrix();          // Restore the previous transformation state
 }
