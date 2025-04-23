@@ -1,3 +1,98 @@
+
+# Transformaciones y Animación 2D/3D
+
+Este repositorio contiene tres implementaciones diferentes de animaciones y transformaciones geométricas utilizando distintos entornos y herramientas:
+
+- Python con Matplotlib y Numpy
+- React Three Fiber (Three.js + React)
+- Processing (2D/3D)
+
+Cada implementación muestra cómo aplicar traslación, rotación y escala en una figura geométrica con animaciones dinámicas en función del tiempo.
+
+---
+
+## 🐍 Python (Matplotlib + Numpy + ImageIO)
+
+**Archivo:** `actividad.py`
+
+Esta implementación utiliza matrices de transformación (traslación, rotación y escala) para modificar un triángulo en un plano 2D. Se genera una animación cuadro por cuadro usando `matplotlib` y se exporta como un GIF con `imageio`.
+
+### Características:
+
+- Transformaciones usando álgebra matricial 3x3 (homogénea)
+- Visualización del triángulo original vs. transformado
+- Animación basada en `sin()` y `cos()` para movimiento y escalado
+- Exportación a GIF sin guardar archivos temporales
+- Se imprime por consola la matriz resultante de cada transformación por frame
+
+
+### GIFT
+
+![Gift threejs](python/transformacion.gif)
+---
+
+## 🌐 Three.js con React Three Fiber
+
+**Archivo:** `Experience.jsx`
+
+Esta versión renderiza un cubo en un entorno 3D usando React y Three.js (con React Three Fiber). La animación es controlada por `useFrame` y actualiza cada frame en base al tiempo transcurrido.
+
+### Características:
+
+- Movimiento circular del cubo (trayectoria senoidal)
+- Rotación continua sobre los ejes X e Y
+- Escalado suave y cíclico usando `Math.sin`
+- Preparado para usar con `Canvas` y `OrbitControls` de `@react-three/drei`
+
+### GIFT
+
+![Gift threejs](threejs/public/images/Animation.gif)
+
+---
+
+## 🎨 Processing (P3D)
+
+**Archivo:** `actividad.pde`
+
+Un sketch en 3D que anima un cubo con transformaciones en tiempo real. El cubo se traslada en una trayectoria circular, rota continuamente y se escala de forma cíclica.
+
+### Características:
+
+- Uso de `translate()`, `rotateX()`, `rotateY()`, `scale()` para transformar
+- Animaciones en función del tiempo (`millis()`)
+- Movimiento fluido en el espacio 3D
+- Código simple que usa `pushMatrix()` y `popMatrix()` para aislar transformaciones
+
+### GIFT
+
+![Gift preocessing](processing/images/Animation.gif)
+
+---
+
+## 💡 Objetivo Común
+
+Las tres versiones buscan ilustrar los conceptos fundamentales de las **transformaciones geométricas animadas** (traslación, rotación, escala) en diferentes entornos gráficos, demostrando cómo pueden implementarse desde cero con matrices o con herramientas específicas del framework.
+
+---
+
+## 🚀 Requisitos
+
+- Python 3.8+ (con `numpy`, `matplotlib`, `imageio`)
+- Node.js + Vite + React para la versión Three.js
+- Processing 4.0+ para la versión en Java
+
+---
+
+## 📂 Estructura del repositorio
+
+2025-04-15_taller1_transformaciones/<br>
+├── python/<br>
+├── threejs/<br>
+├── processing/<br>
+├── README.md<br>
+
+---------------------------------------------------------------
+
 # 2D/3D Transformations and Animation
 
 This repository contains three different implementations of geometric animations and transformations using different environments and tools:
@@ -72,95 +167,15 @@ All three versions aim to illustrate the fundamental concepts of **animated geom
 
 ## 📂 Repository Structure
 
-2025-04-15_taller1_transformaciones/
-├── python/
-├── threejs/
-├── processing/
-├── README.md
+2025-04-15_taller1_transformaciones/<br>
+├── python/<br>
+├── threejs/<br>
+├── processing/<br>
+├── README.md<br>
 
 
 
----------------------------------------------------------------
 
 
-# Transformaciones y Animación 2D/3D
-
-Este repositorio contiene tres implementaciones diferentes de animaciones y transformaciones geométricas utilizando distintos entornos y herramientas:
-
-- Python con Matplotlib y Numpy
-- React Three Fiber (Three.js + React)
-- Processing (2D/3D)
-
-Cada implementación muestra cómo aplicar traslación, rotación y escala en una figura geométrica con animaciones dinámicas en función del tiempo.
-
----
-
-## 🐍 Python (Matplotlib + Numpy + ImageIO)
-
-**Archivo:** `actividad.py`
-
-Esta implementación utiliza matrices de transformación (traslación, rotación y escala) para modificar un triángulo en un plano 2D. Se genera una animación cuadro por cuadro usando `matplotlib` y se exporta como un GIF con `imageio`.
-
-### Características:
-
-- Transformaciones usando álgebra matricial 3x3 (homogénea)
-- Visualización del triángulo original vs. transformado
-- Animación basada en `sin()` y `cos()` para movimiento y escalado
-- Exportación a GIF sin guardar archivos temporales
-- Se imprime por consola la matriz resultante de cada transformación por frame
-
----
-
-## 🌐 Three.js con React Three Fiber
-
-**Archivo:** `Experience.jsx`
-
-Esta versión renderiza un cubo en un entorno 3D usando React y Three.js (con React Three Fiber). La animación es controlada por `useFrame` y actualiza cada frame en base al tiempo transcurrido.
-
-### Características:
-
-- Movimiento circular del cubo (trayectoria senoidal)
-- Rotación continua sobre los ejes X e Y
-- Escalado suave y cíclico usando `Math.sin`
-- Preparado para usar con `Canvas` y `OrbitControls` de `@react-three/drei`
-
----
-
-## 🎨 Processing (P3D)
-
-**Archivo:** `actividad.pde`
-
-Un sketch en 3D que anima un cubo con transformaciones en tiempo real. El cubo se traslada en una trayectoria circular, rota continuamente y se escala de forma cíclica.
-
-### Características:
-
-- Uso de `translate()`, `rotateX()`, `rotateY()`, `scale()` para transformar
-- Animaciones en función del tiempo (`millis()`)
-- Movimiento fluido en el espacio 3D
-- Código simple que usa `pushMatrix()` y `popMatrix()` para aislar transformaciones
-
----
-
-## 💡 Objetivo Común
-
-Las tres versiones buscan ilustrar los conceptos fundamentales de las **transformaciones geométricas animadas** (traslación, rotación, escala) en diferentes entornos gráficos, demostrando cómo pueden implementarse desde cero con matrices o con herramientas específicas del framework.
-
----
-
-## 🚀 Requisitos
-
-- Python 3.8+ (con `numpy`, `matplotlib`, `imageio`)
-- Node.js + Vite + React para la versión Three.js
-- Processing 4.0+ para la versión en Java
-
----
-
-## 📂 Estructura del repositorio
-
-2025-04-15_taller1_transformaciones/
-├── python/
-├── threejs/
-├── processing/
-├── README.md
 
 
