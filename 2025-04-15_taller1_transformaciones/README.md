@@ -24,7 +24,7 @@ Explorar el uso de transformaciones geométricas (traslación, rotación y escal
 - Three.js / React Three Fiber
 - Processing (modo P3D)
 
-📌 Todas las herramientas fueron instaladas y utilizadas según sus respectivas guías oficiales.
+vas guías oficiales.
 
 ---
 
@@ -34,7 +34,7 @@ Explorar el uso de transformaciones geométricas (traslación, rotación y escal
 2025-04-15_taller1_transformaciones/<br> ├── python/ # Código en Python + transformación y GIF generado<br> │ ├── actividad.py<br> │ └── transformacion.gif<br> ├── threejs/ # Componente React con animación en 3D<br> │ ├── src/<br> │ │ ├── Experience.jsx<br> │ │ ├── App.jsx<br> │ │ ├── Index.css<br> │ │ └── main.jsx<br> │ └── public/images/Animation.gif<br> ├── processing/ # Sketch en Processing<br> │ ├── actividad.pde<br> │ └── images/Animation.gif<br> ├── README.md
 
 
-📎 Sigue la estructura de entregas descrita en la guía GitLab
+
 
 ---
 
@@ -109,7 +109,6 @@ popMatrix();
 - "Genera un cubo 3D en Three.js con movimiento circular, rotación continua y escalado oscilante en tiempo real con React Three Fiber."
 - "Diseña una animación en Processing donde un cubo se mueva en círculo, rote y cambie de tamaño suavemente con base en el tiempo transcurrido."
 
-📎 Usa buenas prácticas de prompts según la guía de IA actualizada
 
 ---
 
