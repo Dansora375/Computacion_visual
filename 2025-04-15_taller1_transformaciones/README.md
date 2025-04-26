@@ -2,7 +2,7 @@
 # 🧪 Transformaciones y Animación 2D/3D
 
 📅 Fecha  
-2025-04-15 – Fecha de entrega
+2025-04-15 – Fecha 
 
 ---
 
@@ -93,13 +93,13 @@ popMatrix();
 ✅ Este taller requiere explícitamente un GIF animado. A continuación, se incluyen los generados por cada entorno:
 
 ### Python  
-![Transformación Python](python/transformacion.gif)
+![Transformación Python](resultados/animationsPython.gif)
 
 ### Three.js  
-![Transformación Three.js](threejs/public/images/Animation.gif)
+![Transformación Three.js](resultados/AnimationThreejs.gif)
 
 ### Processing  
-![Transformación Processing](processing/images/Animation.gif)
+![Transformación Processing](resultados/AnimationProcessing.gif)
 
 ---
 
