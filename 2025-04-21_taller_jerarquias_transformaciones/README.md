@@ -53,7 +53,7 @@ Aplicar estructuras jerárquicas y árboles de transformación para organizar es
 Se desarrolla una escena en React Three Fiber utilizando `<group>` para establecer una jerarquía entre un cubo (padre), una esfera (hijo) y un cono (nieto). La posición y rotación del nodo padre se controlan en tiempo real mediante sliders proporcionados por leva. Los nodos hijo y nieto siguen automáticamente las transformaciones del padre, respetando sus posiciones locales relativas.
 
 **Código relevante (JSX):**
-``jsx
+```jsx
 // Tu código aquí
 <group ref={parentRef}>
   <mesh position={[0, 0, 0]}>
@@ -75,7 +75,7 @@ Se desarrolla una escena en React Three Fiber utilizando `<group>` para establec
     </group>
   </group>
 </group>
-
+```
 
 
 **GIF del visor interactivo:**  
