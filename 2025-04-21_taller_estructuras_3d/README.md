@@ -1,106 +1,148 @@
 
-# 🧪 Visualización y Análisis de Estructuras 3D
+# 🧪 Visualización y Análisis de Modelos 3D
 
 📅 Fecha  
-2025-04-25 – Fecha de entrega
+2025-04-21 – Fecha de entrega
 
 ---
 
 🎯 Objetivo del Taller  
-Aprender a cargar, visualizar y analizar modelos 3D utilizando bibliotecas especializadas en Python. Se busca comprender la estructura geométrica (vértices, aristas, caras) y producir visualizaciones animadas mediante rotaciones.
+Explorar el manejo, visualización y análisis de modelos 3D en diferentes entornos de programación. Se trabajan herramientas de renderizado, estructuras de malla y animaciones aplicadas a modelos en formatos como `.OBJ`, `.STL` o `.GLTF`.
 
 ---
 
 🧠 Conceptos Aprendidos
 
-- ✅ Carga de modelos 3D en distintos formatos (.OBJ, .STL, .GLTF)
-- ✅ Análisis estructural de mallas (número de vértices, caras y aristas únicas)
-- ✅ Visualización 3D con `vedo`
-- ✅ Generación de animaciones con `imageio`
+✅ Lectura y manipulación de mallas 3D (vértices, caras, aristas).
+
+✅ Uso de herramientas como trimesh, vedo y React Three Fiber para cargar y visualizar modelos.
+
+✅ Generación de animaciones 3D y exportación a GIF.
+
+✅ Implementación de interfaces para cambiar visualizaciones (vértices, aristas, caras) de manera interactiva.
+
+Bonus: Renderizado en tiempo real y control de cámara.
 
 ---
 
 🔧 Herramientas y Entornos
 
-- Python (`trimesh`, `vedo`, `numpy`, `matplotlib`, `imageio`)
-- Jupyter Notebook
+- Python: `trimesh`, `vedo`, `numpy`, `matplotlib`
+- React Three Fiber (Three.js), @react-three/drei
+- Vite como entorno base para el proyecto React
 
 ---
 
 📁 Estructura del Proyecto
 
-```
-2025-04-25_taller_visualizacion_3d/
-├── models/
-│   └── eyeball.obj
-├── estructuras_3d_python.ipynb
-├── animacion_malla.gif
+2025-04-25_taller3_visualizacion_3d/
+├── python/
+│   ├── estructuras_3d_python.ipynb
+│   ├── animacion_malla.gif
+│   └── models/
+│       └── eyeball.obj
+├── entorno/
+│   └── threejs/
+│       └── react-three-fiber-app/
+│           ├── src/
+│           │   ├── App.jsx
+│           │   ├── App.css
+│           │   └── main.jsx
+│           ├── public/
+│           │   └── datos/
+│           │       └── candle.obj
+│           └── images/
+│               └── visualizacion_three.gif
 └── README.md
-```
 
 ---
 
 🧪 Implementación
 
-🔹 Etapas realizadas
+### 🧩 Python – Visualización y Análisis con Trimesh y Vedo
 
-1. Se cargó el modelo 3D utilizando `trimesh`, identificando si se trataba de una malla o una escena compuesta.
-2. Se extrajo la información estructural del modelo: número de vértices, caras y aristas únicas.
-3. Se generó una visualización 3D en `vedo` con colores distintos para vértices (rojo), aristas (verde) y caras (azul semi-transparente).
-4. Se implementó una animación rotando el modelo y se exportó como GIF utilizando `imageio`.
+**Descripción:**  
+Se carga un modelo `.obj` usando `trimesh`, se extrae su geometría y se visualiza con `vedo` usando distintos colores para vértices (rojo), aristas (verde) y caras (azul). Además, se genera una animación de rotación exportada como `.gif`.
 
-🔹 Código relevante
-
-**Carga del modelo y verificación de tipo (`trimesh`):**
-
-```python
-scene_or_mesh = trimesh.load(model_path)
-if isinstance(scene_or_mesh, trimesh.Scene):
-    mesh = scene_or_mesh.geometry[list(scene_or_mesh.geometry.keys())[0]]
-else:
-    mesh = scene_or_mesh
-```
-
-**Visualización en vedo:**
-
+**Código relevante:**
 ```python
 vedo_mesh = vedo.Mesh([mesh.vertices, mesh.faces])
 point_cloud = vedo.Points(mesh.vertices, r=8, c="red")
 wireframe = vedo_mesh.wireframe().lw(2)
 surface = vedo_mesh.clone().c("blue").alpha(0.7)
-
-plotter = vedo.Plotter()
-plotter.show(point_cloud, wireframe, surface)
 ```
 
-**Generación de animación con imageio:**
 
-```python
-for i in range(72):
-    vedo_mesh.rotate_z(5)
-    plotter.show(vedo_mesh, interactive=False)
-    plotter.screenshot(filename)
-```
 
 ---
 
-📊 Resultados Visuales
+### 🎞️ Python – Animación de Malla 3D
 
-✅ Este taller requiere explícitamente un GIF animado. A continuación, se incluye la visualización final generada en Python:
+**Descripción:**  
+La animación rotacional de la malla 3D se genera usando `vedo`, girando progresivamente el modelo sobre el eje Z. El resultado se exporta como `.gif`.
 
-### Python  
-![Visualización malla 3D animada](animacion_malla.gif)
+**Código relevante:**
+```python
+def rotate():
+    vedo_mesh.rotate_z(5)
+    return vedo_mesh
+
+vedo.io.Video("animacion_malla.gif").action(rotate, duration=10, rate=30)
+```
+
+**GIF de animación:**  
+![Animación Python](resultados/animacion_malla.gif)
+
+---
+
+### 🌐 React Three Fiber – Visualización Interactiva
+
+**Descripción:**  
+Se desarrolla una aplicación React usando @react-three/fiber y @react-three/drei para cargar un modelo .obj (candle.obj). Se integra OrbitControls para navegación libre y una interfaz sencilla que permite alternar entre vistas de:
+
+Caras coloreadas
+
+Wireframe (aristas)
+
+Bordes resaltados (Edges)
+
+Puntos (vértices)
+**Código relevante (JSX):**
+```jsx
+<mesh geometry={geometry}>
+  {mode === 'faces' && <meshStandardMaterial color="lightblue" />}
+  {mode === 'wireframe' && <meshBasicMaterial wireframe color="orange" />}
+  {mode === 'edges' && (
+    <>
+      <meshStandardMaterial color="#d9bfa3" />
+      <Edges threshold={15} color="red" />
+    </>
+  )}
+  {mode === 'points' && (
+    <points>
+      <bufferGeometry attach="geometry" {...geometry} />
+      <pointsMaterial color="red" size={0.01} />
+    </points>
+  )}
+</mesh>
+```
+
+**GIF del visor interactivo:**  
+![Visualización Three.js](resultados/resultados_Threejs.gif)
 
 ---
 
 🧩 Prompts Usados
 
-Este taller no incluyó prompts generativos, ya que todo el código fue escrito de forma manual y estructurada.
+- "Carga un modelo 3D `.obj` en Python y visualízalo usando `vedo` con colores distintos por tipo de componente."
+- "Genera una animación rotando el modelo 3D cargado con `vedo` y exporta el resultado como `.gif`."
+- "Crea una aplicación en React Three Fiber que cargue un `.obj`, permita orbitar la cámara y cambiar entre vista de caras, aristas y puntos."
 
 ---
 
-💬 Reflexión Final
+💬 Reflexión Final  
 
-Este ejercicio me permitió entender en profundidad cómo se representa una malla 3D y cómo visualizarla con distintas herramientas. Aprendí a diferenciar entre una `Scene` y una `Mesh` en `trimesh`, a manipular estructuras geométricas y a usar `vedo` para renderizar y animar.
+Este taller fue clave para afianzar el proceso completo de carga, visualización y animación de modelos 3D.
+Python resultó ideal para el análisis estructural y para crear animaciones rápidamente, mientras que React Three Fiber permitió una experiencia visual interactiva y más cercana a entornos web modernos.
 
-Tuve algunas dificultades al principio con errores de atributos y métodos inexistentes (como `vedo.animate`), pero eso me llevó a investigar y encontrar una solución práctica con `imageio` para crear GIFs desde capturas de pantalla. Esto reforzó mis habilidades de depuración y búsqueda de alternativas.
+Uno de los principales retos fue el manejo de formatos y la correcta conversión de datos entre librerías, especialmente en Python, y el control de visualización precisa de mallas en React. También fue necesario comprender bien conceptos como la geometría bufferizada (BufferGeometry) en Three.js y ajustar el renderizado de bordes y vértices.

@@ -7,9 +7,12 @@ import './App.css';
 
 // Component that loads and displays the 3D model
 function Model({ mode, setInfo }) {
-  const obj = useLoader(OBJLoader, '/models/Candle.obj');
+const obj = useLoader(OBJLoader, '/datos/Candle.obj'); // Load the OBJ file
 
   useEffect(() => {
+
+
+
     let vertices = 0;
     let faces = 0;
 
