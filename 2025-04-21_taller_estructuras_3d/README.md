@@ -59,6 +59,18 @@ Bonus: Renderizado en tiempo real y control de cámara.
 
 🧪 Implementación
 
+🔹 Etapas realizadas
+
+1. Configuración de los entornos (Python + React Three Fiber + Vite).
+2. Carga de modelos .OBJ en Python (trimesh) y en React (@react-three/drei).
+3. Análisis estructural de los modelos (conteo de vértices, caras y aristas en Python).
+4. Visualización de la geometría con colores y representación de puntos, líneas y superficies (vedo en Python).
+5. Desarrollo de controles de visualización interactivos en React Three Fiber (cambio de modo: vértices, aristas, caras)
+6. Generación de animaciones de rotación en Python y exportación de GIF
+7. Exportación del proyecto organizado y documentación en el README.md
+
+
+
 ### 🧩 Python – Visualización y Análisis con Trimesh y Vedo
 
 **Descripción:**  

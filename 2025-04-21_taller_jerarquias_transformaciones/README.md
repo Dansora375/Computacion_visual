@@ -46,6 +46,14 @@ Aplicar estructuras jerárquicas y árboles de transformación para organizar es
 
 **🧪 Implementación**
 
+🔹 Etapas realizadas
+
+1. Preparación de datos o escena.
+2. Aplicación de modelo o algoritmo.
+3. Visualización o interacción.
+4.Guardado de resultados.
+
+
 **🌐 React Three Fiber – Árbol de Movimiento 3D**
 
 **Descripción:**
