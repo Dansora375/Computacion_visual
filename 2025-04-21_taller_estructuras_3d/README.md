@@ -34,7 +34,7 @@ Bonus: Renderizado en tiempo real y control de cámara.
 ---
 
 📁 Estructura del Proyecto
-
+"
 2025-04-25_taller3_visualizacion_3d/
 ├── python/
 │   ├── estructuras_3d_python.ipynb
@@ -54,7 +54,7 @@ Bonus: Renderizado en tiempo real y control de cámara.
 │           └── images/
 │               └── visualizacion_three.gif
 └── README.md
-
+"
 ---
 
 🧪 Implementación
