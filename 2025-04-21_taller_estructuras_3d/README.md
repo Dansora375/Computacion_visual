@@ -35,24 +35,24 @@ Bonus: Renderizado en tiempo real y control de cámara.
 
 📁 Estructura del Proyecto
 
-2025-04-25_taller3_visualizacion_3d/&lt;br>
-├── python/&lt;br>
-│   ├── estructuras_3d_python.ipynb&lt;br>
-│   ├── animacion_malla.gif&lt;br>
-│   └── models/&lt;br>
-│       └── eyeball.obj&lt;br>
-├── entorno/&lt;br>
-│   └── threejs/&lt;br>
-│       └── react-three-fiber-app/&lt;br>
-│           ├── src/&lt;br>
-│           │   ├── App.jsx&lt;br>
-│           │   ├── App.css&lt;br>
-│           │   └── main.jsx&lt;br>
-│           ├── public/&lt;br>
-│           │   └── datos/&lt;br>
-│           │       └── candle.obj&lt;br>
-│           └── images/&lt;br>
-│               └── visualizacion_three.gif&lt;br>
+2025-04-25_taller3_visualizacion_3d/<br>
+├── python/<br>
+│   ├── estructuras_3d_python.ipynb<br>
+│   ├── animacion_malla.gif<br>
+│   └── models/<br>
+│       └── eyeball.obj<br>
+├── entorno/<br>
+│   └── threejs/<br>
+│       └── react-three-fiber-app/<br>
+│           ├── src/<br>
+│           │   ├── App.jsx<br>
+│           │   ├── App.css<br>
+│           │   └── main.jsx<br>
+│           ├── public/<br>
+│           │   └── datos/<br>
+│           │       └── candle.obj<br>
+│           └── images/<br>
+│               └── visualizacion_three.gif<br>
 └── README.md
 
 ---
