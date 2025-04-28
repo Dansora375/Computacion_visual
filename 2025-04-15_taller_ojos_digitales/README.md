@@ -58,7 +58,7 @@ Entender los fundamentos de la percepción visual artificial mediante el procesa
 El script carga una imagen a color, la convierte a escala de grises y aplica filtros comunes como el suavizado Gaussiano y un filtro de enfoque personalizado. Estos pasos iniciales son fundamentales para preparar la imagen para análisis posteriores.
 
 **Código relevante:**
-Puedes ver el código completo en [`entorno/python/ojos_digitales.py`](resultados/imagenes_vision_artificial.gif). Aquí algunos fragmentos clave:
+
 
 ```python
 # Cargar imagen y convertir a gris
@@ -80,6 +80,10 @@ laplacian = cv2.Laplacian(img_gray, cv2.CV_64F)
 abs_laplacian = cv2.convertScaleAbs(laplacian)
 ```
 ---
+
+
+**GIF del visor interactivo:**  
+![Visualización pyhon results](resultados/imagenes_vision_artificial.gif)
 
 🧩 Prompts Usados
 
