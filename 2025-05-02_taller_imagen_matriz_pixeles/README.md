@@ -130,7 +130,7 @@ HSV	Gris 1	Gris 2
 <img src="resultados/HSV.png" width="200">	<img src="resultados/gray 1.png" width="200">	<img src="resultados/gray 2.png" width="200">
 Manipulación de Regiones
 Slicing	Copiar/Pegar
-<img src="resultados/slicing.png" width="300">	<img src="resultados/slicing 2.png" width="300">
+<img src="resultados/slicing.png" width="300">	<img src="resultados/slicing  2.png" width="300">
 Análisis y Ajustes
 Histograma	Brillo/Contraste
 <img src="resultados/histo.png" width="300">	<img src="resultados/ajuste.png" width="300">
