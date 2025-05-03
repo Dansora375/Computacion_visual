@@ -143,6 +143,9 @@ Histograma	Brillo/Contraste
 "Modifica una región rectangular de una imagen usando slicing de NumPy."
 "Calcula y visualiza el histograma de una imagen en escala de grises."
 "Aplica ajustes de brillo y contraste a una imagen con OpenCV."
+
+
+
 💬 Reflexión Final
 
 Este taller proporcionó una comprensión fundamental de cómo las imágenes digitales son esencialmente matrices de números. Manipular píxeles y regiones directamente abre un abanico de posibilidades para procesar y transformar imágenes.
