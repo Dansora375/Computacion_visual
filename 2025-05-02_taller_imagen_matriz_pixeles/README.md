@@ -122,7 +122,7 @@ Ilustra cómo modificar los valores de intensidad de los píxeles en toda la mat
 
 Imagen original:
 
-![modificados](resultados/red.png)
+![modificados](datos/foto.jpg)
 
 
 Imagenes modificadas
