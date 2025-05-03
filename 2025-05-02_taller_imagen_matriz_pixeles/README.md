@@ -120,42 +120,21 @@ Ilustra cómo modificar los valores de intensidad de los píxeles en toda la mat
 
 🖼️ Resultados
 
-Imagen original:
-
-![modificados](datos/foto.jpg)
-
-
-Imagenes modificadas
-
+Imagen original
+<div align="center"> <img src="datos/foto.jpg" width="400"> </div>
 Canales de Color (BGR)
-![modificados](resultados/red.png)
-![modificados](resultados/blue.png)
-![modificados](resultados/green.png )
+Rojo	Verde	Azul
+<img src="resultados/red.png" width="200">	<img src="resultados/green.png" width="200">	<img src="resultados/blue.png" width="200">
+Canales de Color (HSV) y Escala de Grises
+HSV	Gris 1	Gris 2
+<img src="resultados/HSV.png" width="200">	<img src="resultados/gray 1.png" width="200">	<img src="resultados/gray 2.png" width="200">
+Manipulación de Regiones
+Slicing	Copiar/Pegar
+<img src="resultados/slicing.png" width="300">	<img src="resultados/slicing 2.png" width="300">
+Análisis y Ajustes
+Histograma	Brillo/Contraste
+<img src="resultados/histo.png" width="300">	<img src="resultados/ajuste.png" width="300">
 
-
-Canales de Color (HSV)
- ![modificados](resultados/HSV.png )  
-![modificados](resultados/gray%201.png )
-![modificados](resultados/gray%202.png )
-
-
-Imagen con Región Modificada (Slicing)
-
-![modificados](resultados/slicing.png )
-
-
-Imagen con Región Copiada/Pegada
-
-![modificados](resultados/slicing%20%202.png )
-
-Histograma de Intensidad
-
-![modificados](resultados/histo.png )
-
-
-Imagen con Ajuste de Brillo y Contraste
-
-![modificados](resultados/ajuste.png )
 
 
 🧩 Prompts Usados
