@@ -47,6 +47,63 @@ Aplicar técnicas básicas de segmentación en imágenes mediante umbralización
 4.  Cálculo del centro de masa y rectángulos envolventes.
 5.  Obtención de estadísticas geométricas: número, área y perímetro promedio.
 
+---
+
+**💻 Código Relevante**
+
+Aquí se presentan fragmentos clave del código Python utilizado en el taller para cada etapa del proceso de segmentación y análisis.
+
+
+
+```python
+# 1. Cargar imagen en escala de grises
+img = cv2.imread(ruta_imagen, cv2.IMREAD_GRAYSCALE)
+
+# 2. Umbral fijo
+_, binary_fixed = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+
+# 3. Umbral adaptativo
+binary_adapt = cv2.adaptiveThreshold(
+    img, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+    cv2.THRESH_BINARY, blockSize=11, C=2
+)
+
+# 4. Detección de contornos
+contours, _ = cv2.findContours(binary_fixed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+img_contours = cv2.cvtColor(img.copy(), cv2.COLOR_GRAY2BGR)
+cv2.drawContours(img_contours, contours, -1, (0, 255, 0), 2)
+
+# 5. Centro de masa y bounding box
+img_shapes = img_contours.copy()
+areas, perimeters = [], []
+
+for c in contours:
+    # Centro de masa
+    M = cv2.moments(c)
+    if M["m00"] != 0:
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+        cv2.circle(img_shapes, (cx, cy), 4, (0, 0, 255), -1)
+
+    # Bounding box
+    x, y, w, h = cv2.boundingRect(c)
+    cv2.rectangle(img_shapes, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+    # Métricas
+    areas.append(cv2.contourArea(c))
+    perimeters.append(cv2.arcLength(c, True))
+
+# 6. Métricas generales
+num_formas = len(contours)
+area_prom = sum(areas) / num_formas if num_formas else 0
+perim_prom = sum(perimeters) / num_formas if num_formas else 0
+
+print("Número de formas:", num_formas)
+print("Área promedio:", area_prom)
+print("Perímetro promedio:", perim_prom)
+```
+
+
 **🖼️ Resultados**
 
 Imagen original:
