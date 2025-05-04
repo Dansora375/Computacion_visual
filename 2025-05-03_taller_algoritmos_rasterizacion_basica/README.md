@@ -22,14 +22,15 @@ Comprender e implementar los algoritmos clásicos de rasterización para líneas
 * NumPy (opcional)
 
 **📁 Estructura del Proyecto**
-yyyy-mm-dd_taller_algoritmos_rasterizacion_basica/
-├── python/
-│ └── rasterizacion_algoritmos.ipynb
-├── resultados/
-│ ├── linea.png
-│ ├── circulo.png
-│ ├── triangulo.png
-└── README.md
+
+2025-05-03_taller_algoritmos_rasterizacion_basica/<br>
+├── python/<br>
+│ └── rasterizacion_algoritmos.ipynb<br>
+├── resultados/<br>
+│ ├── linea.png<br>
+│ ├── circulo.png<br>
+│ ├── triangulo.png<br>
+└── README.md<br>
 
 
 
@@ -130,9 +131,10 @@ fill_triangle((30, 50), (100, 150), (160, 60))
 🖼️ Resultados
 Primitivas Generadas
 Línea (Bresenham)	Círculo (Punto Medio)	Triángulo (Scanlines)
-<img src="resultados/linea.png" width="200">	<img src="resultados/circulo.png" width="200">	<img src="resultados/triangulo.png" width="200">
-Imagen Final Combinada
-<div align="center"> <img src="resultados/triangulo.png" width="300"> </div>
+<img src="resultados/linea.png" width="200">	
+<img src="resultados/circulo.png" width="200">
+<img src="resultados/triangulo.png" width="200">
+
 
 ## 🧩 Prompts Usados
 
