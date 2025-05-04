@@ -1,7 +1,7 @@
 ## 🧪 Taller - Rasterización desde Cero: Dibujando con Algoritmos Clásicos
 
 **📅 Fecha**  
-Fecha del taller
+2025-05-03
 
 **🔍 Objetivo del taller**  
 Comprender e implementar los algoritmos clásicos de rasterización para líneas, círculos y triángulos, entendiendo cómo se construyen imágenes píxel a píxel en una pantalla sin usar librerías de alto nivel.
