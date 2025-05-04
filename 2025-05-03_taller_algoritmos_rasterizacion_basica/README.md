@@ -56,6 +56,9 @@ image = Image.new('RGB', (width, height), 'white')
 pixels = image.load()
 ```
 **2. Algoritmo de Bresenham (líneas)**
+
+Esta función implementa el algoritmo de Bresenham. Calcula el error de decisión en cada paso para determinar si el siguiente píxel debe estar en la misma fila/columna o si debe avanzar diagonalmente, garantizando que la línea se vea suave y sin huecos. Dibuja los píxeles en color rojo.
+
 ```python
 def bresenham(x0, y0, x1, y1):
     dx = abs(x1 - x0)
@@ -82,6 +85,8 @@ bresenham(20, 20, 180, 120)
 
 **3. Algoritmo de punto medio (círculos)**
 
+Este algoritmo dibuja un círculo centrado en (x0, y0) con un radius dado. Comienza desde el punto (radius, 0) en uno de los octantes y utiliza un parámetro de decisión p para elegir el siguiente píxel más cercano al círculo ideal. Por simetría, dibuja los 8 puntos correspondientes en todos los octantes a la vez. Dibuja los píxeles en color azul.
+
 ```python
 def midpoint_circle(x0, y0, radius):
     x = radius
@@ -104,6 +109,9 @@ midpoint_circle(100, 100, 40)
 ```
 
 **4. Relleno de triángulos**
+
+
+Este método rasteriza y rellena un triángulo definido por tres puntos p1, p2, p3. Primero ordena los vértices por su coordenada Y. Luego, interpola los valores X a lo largo de los bordes para cada scanline (fila de píxeles) dentro del rango Y del triángulo. Finalmente, para cada scanline, dibuja una línea horizontal (segmento de píxeles) entre los puntos de borde interpolados. Dibuja los píxeles en color verde.
 
 ```python
 def fill_triangle(p1, p2, p3):
@@ -131,8 +139,14 @@ fill_triangle((30, 50), (100, 150), (160, 60))
 🖼️ Resultados
 Primitivas Generadas
 Línea (Bresenham)	Círculo (Punto Medio)	Triángulo (Scanlines)
+
+
+
+
 <img src="resultados/linea.png" width="200">	
+
 <img src="resultados/circulo.png" width="200">
+
 <img src="resultados/triangulo.png" width="200">
 
 
