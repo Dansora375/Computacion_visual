@@ -36,6 +36,8 @@ Entender los fundamentos de la percepción visual artificial mediante el procesa
 │   └── flor.jpg  <br>
 ├── entorno/python/<br>
 │   └── ojos_digitales.py  <br>
+├── resultados/<br>
+│   └── imagenes_vision_arwtificial.gif  <br>
 └── README.md
 
 ---
