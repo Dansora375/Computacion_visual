@@ -33,9 +33,13 @@ Detectar formas simples (círculos, cuadrados, triángulos) en imágenes binariz
 
 📁 Estructura del Proyecto
 
-2025-05-03_taller_analisis_geometrico]/<br>
+2025-05-03_taller_analisis_geometrico/<br>
+├── datos/<br>
+│   └── imagen generada.png  <br>
 ├── entorno/python/<br>
 │   └── analisis_geometrico.ipynb  <br>
+├── resultados/<br>
+│   └── contorno_metricas.png  <br>
 └── README.md
 
 
@@ -101,6 +105,15 @@ for i, contour in enumerate(contours):
     cv2.putText(output_image, label, (cX - 40, cY - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
 ```
+
+
+
+🖼️ Visualización de Resultados
+Descripción:  
+La imagen de salida muestra la imagen binarizada original con los contornos de las figuras detectadas dibujados en diferentes colores. Cada figura está etiquetada con su clasificación (si fue posible), su área, perímetro y las coordenadas de su centroide, que también se marcan con un punto rojo.
+
+(Nota: El resultado visual es una imagen estática generada por matplotlib.pyplot.show() dentro del notebook, no un GIF interactivo).
+
 **Imagen Binarizada Generada**
 
 ![Imagen generada](datos/imagen%20generada.png)
@@ -109,12 +122,6 @@ for i, contour in enumerate(contours):
 
 ![Imagen con contornor y metricas](resultados/contorno_metricas.png)
 
-
-🖼️ Visualización de Resultados
-Descripción:  
-La imagen de salida muestra la imagen binarizada original con los contornos de las figuras detectadas dibujados en diferentes colores. Cada figura está etiquetada con su clasificación (si fue posible), su área, perímetro y las coordenadas de su centroide, que también se marcan con un punto rojo.
-
-(Nota: El resultado visual es una imagen estática generada por matplotlib.pyplot.show() dentro del notebook, no un GIF interactivo).
 
 🧩 Prompts Usados
 
