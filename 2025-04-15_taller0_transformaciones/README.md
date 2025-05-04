@@ -32,7 +32,7 @@ vas guías oficiales.
 
 
 2025-04-15_taller1_transformaciones/<br> ├── python/ # Código en Python + transformación y GIF generado<br> │ ├── actividad.py<br> │ └── transformacion.gif<br> ├── threejs/ # Componente React con animación en 3D<br> │ ├── src/<br> │ │ ├── Experience.jsx<br> │ │ ├── App.jsx<br> │ │ ├── Index.css<br> │ │ └── main.jsx<br> │ └── public/images/Animation.gif<br> ├── processing/ # Sketch en Processing<br> │ ├── actividad.pde<br> │ └── images/Animation.gif<br>
-├── resultados/
+├── resultados/<br>
 │   ├── AnimationProcessing.gif<br>
 │   ├── animationsPython.gif<br>
 │   └── AnimationThreejs.gif<br>
