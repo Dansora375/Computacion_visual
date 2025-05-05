@@ -193,3 +193,131 @@ Se observan en los gift los  diferentes modelos de un skull entre dos formatos e
 
 Este taller proporcionó una excelente introducción práctica a la carga y manejo de modelos 3D en un entorno web moderno con React. Utilizar React Three Fiber simplifica enormemente la integración de Three.js en un flujo de trabajo de componentes. Comparar los formatos .OBJ, .STL y .GLTF directamente en la aplicación web hizo muy claras sus diferencias: GLTF destaca por su capacidad de incluir materiales y texturas complejas en un solo archivo; STL es muy simple y eficiente para geometrías sin color ni textura; y OBJ, aunque versátil, a menudo requiere archivos de materiales (.MTL) separados. La implementación de OrbitControls y la lógica de alternancia de modelos demostró cómo añadir interactividad básica que es fundamental en cualquier visor 3D. Un desafío interesante fue obtener el número de vértices de manera consistente a través de los diferentes loaders, ya que la estructura de datos puede variar ligeramente. Este es un paso fundamental para construir aplicaciones web más complejas que involucren visualización 3D interactiva.
 
+
+
+
+
+
+
+
+
+
+# 🌐 Taller - Importando el Mundo: Visualización y Conversión de Formatos 3D python
+
+📅 Fecha  
+[Fecha del Taller, 2025-05-04] – Fecha de realización
+
+---
+
+🎯 Objetivo del Taller  
+Importar y visualizar modelos 3D en distintos formatos (.OBJ, .STL, .GLTF) utilizando Python. Analizar sus propiedades geométricas (vértices, caras, normales) y detectar duplicados. Comparar modelos entre sí y realizar conversiones entre formatos usando herramientas como `trimesh`, `open3d` y `assimp`.
+
+---
+
+🧠 Conceptos Aprendidos
+
+✅ Carga de modelos 3D en diferentes formatos con `trimesh` y `open3d`.  
+✅ Extracción de propiedades geométricas como cantidad de vértices, caras y normales.  
+✅ Verificación de duplicados y estado de watertight de las mallas.  
+✅ Visualización básica de modelos 3D directamente en Python.  
+✅ Conversión entre formatos usando `trimesh.exchange` y `pyassimp`.  
+✅ Automatización de análisis para múltiples modelos.
+
+---
+
+🔧 Herramientas y Entornos
+
+- Python
+- `trimesh`
+- `open3d`
+- `numpy`
+- `pyassimp`
+- `scipy` (recomendado, pero se manejan errores si no está presente)
+
+---
+
+📁 Estructura del Proyecto
+
+2025-05-04_taller_modelos_3D/<br>
+├── modelos/<br>
+│   └── modelo.obj, modelo.stl, modelo.gltf (rutas personalizables)<br>
+├── entorno/python/<br>
+│   └── conversion_y_analisis_3d.ipynb<br>
+├── resultados/<br>
+│   └── [espacio para guardar modelos convertidos y capturas]<br>
+└── README.md
+
+---
+
+🧪 Implementación
+
+🔹 Etapas realizadas
+
+1.  Carga de modelos 3D en formatos .OBJ, .STL y .GLTF usando `trimesh` y `open3d`.
+2.  Visualización de cada modelo para verificar su estructura básica.
+3.  Extracción de métricas geométricas (vértices, caras, normales).
+4.  Detección de mallas con vértices duplicados o no watertight.
+5.  Conversión entre formatos usando `trimesh.exchange.export` y `pyassimp.export`.
+6.  Comparación entre diferentes modelos y verificación post-conversión.
+7.  Automatización con una función de comparación entre múltiples modelos.
+
+---
+
+### 📊 Análisis y Conversión de Modelos
+
+**Descripción:**  
+El taller se centró en la comparación estructural entre modelos cargados en distintos formatos. Se analizaron sus vértices, caras y normales, verificando también si la malla estaba cerrada (`watertight`). Luego se realizó una conversión entre formatos para verificar si la estructura se mantenía tras el cambio. Se incluyeron estrategias para manejar errores comunes como la falta de `scipy` o la incompatibilidad con `pyassimp`.
+
+**Código relevante:**
+
+```python
+def analyze_trimesh(mesh):
+    try:
+        normals_count = len(mesh.vertex_normals)
+    except Exception:
+        normals_count = 0  # Evita error si falta scipy
+
+    info = {
+        'vertices': len(mesh.vertices),
+        'faces': len(mesh.faces),
+        'normals': normals_count,
+        'has_duplicate_vertices': not mesh.is_watertight
+    }
+    return info
+
+
+  def convert_format(input_path, output_path, file_type='stl'):
+    mesh = trimesh.load(input_path)
+    mesh.export(output_path, file_type=file_type)
+
+
+  def compare_models(mesh1, mesh2):
+      return {
+          'vertices_equal': np.allclose(mesh1.vertices, mesh2.vertices),
+          'faces_equal': np.array_equal(mesh1.faces, mesh2.faces),
+          'same_volume': np.isclose(mesh1.volume, mesh2.volume)
+      }
+```
+
+🖼️ Visualización de Resultados
+
+Descripción:
+Se visualizaron modelos importados en su forma original y convertida, mostrando sus propiedades (vértices, caras, normales) y permitiendo comprobar si las conversiones conservaron la geometría.
+
+GIF de comparación visual de modelos cargados y convertidos
+
+![gift modelos](resultados/taller%20modelos%203d%20python.gif)
+
+🧩 Prompts Usados
+
+"Importa y visualiza un modelo .OBJ usando trimesh en Python."
+"Analiza cantidad de vértices, caras, y normales de un modelo 3D."
+"Convierte un archivo .STL a .GLTF usando pyassimp y exporta el resultado."
+"Compara la geometría de dos modelos 3D distintos y evalúa si son iguales."
+"Muestra una malla en pantalla usando open3d para ver su forma."
+"Detecta si una malla está cerrada (is_watertight) en trimesh."
+"Automatiza la comparación de varios modelos y genera un resumen de diferencias."
+
+💬 Reflexión Final
+
+Este taller facilitó una comprensión profunda del manejo de modelos 3D desde una perspectiva programática. Cargar modelos en distintos formatos y comparar sus propiedades permitió apreciar las diferencias sutiles entre estándares como OBJ, STL y GLTF. El uso de librerías como trimesh y open3d resultó clave para visualizar e inspeccionar los modelos de forma rápida, mientras que pyassimp ofreció una solución flexible para la conversión entre formatos. El análisis estructurado de geometría (vértices, caras, normales) demostró ser una herramienta esencial para validar integridad y consistencia. Automatizar este análisis nos preparó para manejar flujos de trabajo con múltiples modelos, y nos acercó a prácticas más profesionales en la gestión de datos 3D.
