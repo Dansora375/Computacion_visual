@@ -37,12 +37,12 @@ Generar programáticamente primitivas 3D (cubos, esferas, cilindros) a partir de
 📁 Estructura del Proyecto
 
 2025-05-04_taller_generacion_exportacion_3D/<br>
-├── modelos/            # Opcional: Puede usarse para datos de entrada (.csv, .json) o para guardar algunos modelos generados
+├── modelos/<br>
 ├── entorno/python/<br>
-│   └── generacion_y_exportacion_3d.ipynb # Notebook con el código del taller
+│   └── generacion_y_exportacion_3d.ipynb<br>
 ├── resultados/<br>
-│   └── [espacio para guardar los modelos generados y capturas/GIFs]
-└── README.md
+│   └── [espacio para guardar los modelos generados y capturas/GIFs]<br>
+└── README.md<br>
 
 ---
 
