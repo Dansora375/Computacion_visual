@@ -104,27 +104,30 @@ class PostureAnalysisSystem:
     
     def handle_bad_posture(self):
         """
-        Maneja la detección de mala postura con mejor control de ventana
+        Maneja la detección de mala postura con control de ventana mejorado
         """
         current_time = time.time()
         
         if self.bad_posture_start_time is None:
             self.bad_posture_start_time = current_time
         
-        # Si ha pasado el tiempo de espera y la ventana no está abierta o fue cerrada manualmente
+        # Si ha pasado el tiempo de espera
         if (current_time - self.bad_posture_start_time) > self.warning_delay:
-            if not self.visualizer.is_open():
+            # Si la ventana no está abierta Y se permite apertura automática
+            if not self.visualizer.is_open() and self.visualizer.allow_auto_open:
                 print("⚠️  Mala postura detectada por más de 3 segundos")
                 print("🔄 Abriendo visualización 3D de postura correcta...")
                 self.visualizer.show_in_thread()
     
     def handle_good_posture(self):
         """
-        Maneja la detección de buena postura
+        Maneja la detección de buena postura y reinicia temporizador si fue cerrada manualmente
         """
-        self.bad_posture_start_time = None
+        # Si había mala postura antes y ahora está bien, permitir reapertura
+        if self.bad_posture_start_time is not None:
+            self.visualizer.allow_reopen()
         
-        # No cerrar automáticamente - dejar que el usuario controle la ventana
+        self.bad_posture_start_time = None
     
     def run(self):
         """

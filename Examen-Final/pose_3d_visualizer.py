@@ -21,6 +21,7 @@ class Pose3DVisualizer:
         self.is_showing = False
         self.thread = None
         self.manually_closed = False  # Nueva variable para detectar cierre manual
+        self.allow_auto_open = True  # Permite apertura automática
         self.last_show_time = 0  # Para evitar spam de ventanas
         
         # Variables para manejo de modelos
@@ -389,11 +390,13 @@ class Pose3DVisualizer:
         def on_close(evt):
             """Detecta cuando el usuario cierra manualmente la ventana"""
             print("🔒 Ventana 3D cerrada por el usuario")
+            print("⏳ Necesitas 3 segundos continuos de mala postura para reabrir")
             self.manually_closed = True
+            self.allow_auto_open = False  # Desactivar apertura automática
             self.is_showing = False
         
-        # Agregar callback de cierre
-        self.plotter.add_callback('WindowExitEvent', on_close)
+        # Agregar callback de cierre usando el evento correcto
+        self.plotter.add_callback('ExitEvent', on_close)
         
         # === TEXTOS INFORMATIVOS ACTUALIZADOS ===
         # Título principal
@@ -402,11 +405,12 @@ class Pose3DVisualizer:
         # Información del modelo actual
         model_info = [
             vedo.Text2D("📱 Modelos 3D: Postura Correcta y Postura Incorrecta", pos=(0.02, 0.95), s=1.0, c='purple', bold=True),
-            vedo.Text2D("💡 Cierra esta ventana para que no se reabra automáticamente", pos=(0.02, 0.90), s=0.8, c='orange', bold=True),
+            vedo.Text2D("💡 Al cerrar esta ventana, necesitarás 3 segundos", pos=(0.02, 0.90), s=0.8, c='orange', bold=True),
+            vedo.Text2D("   continuos de mala postura para que se reabra", pos=(0.02, 0.87), s=0.8, c='orange', bold=True),
         ]
         
         # Controles simplificados - solo mouse
-        controls_y_start = 0.82
+        controls_y_start = 0.79
         instructions = [
             vedo.Text2D("🖱️  CONTROLES:", pos=(0.02, controls_y_start), s=1.0, c='darkblue', bold=True),
             vedo.Text2D("• Arrastrar: Rotar vista", pos=(0.02, controls_y_start - 0.03), s=0.8, c='black'),
@@ -459,19 +463,22 @@ class Pose3DVisualizer:
         """
         import time
         
-        # Si fue cerrada manualmente, no reabrir por 10 segundos
-        if self.manually_closed:
-            current_time = time.time()
-            if current_time - self.last_show_time < 10:
-                return
-            else:
-                # Reiniciar después de 10 segundos
-                self.manually_closed = False
+        # Si fue cerrada manualmente y no se permite apertura automática, no mostrar
+        if not self.allow_auto_open:
+            return
         
         if self.thread is None or not self.thread.is_alive():
             self.last_show_time = time.time()
             self.thread = Thread(target=self.show_correct_posture, daemon=True)
             self.thread.start()
+    
+    def allow_reopen(self):
+        """
+        Permite que la ventana se pueda reabrir después de cierre manual
+        """
+        print("🔓 Permitiendo reapertura de ventana")
+        self.manually_closed = False
+        self.allow_auto_open = True
     
     def close(self):
         """
@@ -485,4 +492,4 @@ class Pose3DVisualizer:
         """
         Verifica si la ventana 3D está abierta
         """
-        return self.is_showing and not self.manually_closed
+        return self.is_showing
