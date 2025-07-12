@@ -20,6 +20,8 @@ class Pose3DVisualizer:
         self.plotter = None
         self.is_showing = False
         self.thread = None
+        self.manually_closed = False  # Nueva variable para detectar cierre manual
+        self.last_show_time = 0  # Para evitar spam de ventanas
         
         # Variables para manejo de modelos
         self.custom_models = []
@@ -383,6 +385,16 @@ class Pose3DVisualizer:
             bg='#f0f0f0'  # Gris claro
         )
         
+        # === CALLBACK PARA DETECTAR CIERRE MANUAL ===
+        def on_close(evt):
+            """Detecta cuando el usuario cierra manualmente la ventana"""
+            print("🔒 Ventana 3D cerrada por el usuario")
+            self.manually_closed = True
+            self.is_showing = False
+        
+        # Agregar callback de cierre
+        self.plotter.add_callback('WindowExitEvent', on_close)
+        
         # === TEXTOS INFORMATIVOS ACTUALIZADOS ===
         # Título principal
         title = vedo.Text2D("POSTURA CORRECTA ERGONÓMICA", pos="top-center", s=1.4, c='darkred', bold=True)
@@ -390,10 +402,11 @@ class Pose3DVisualizer:
         # Información del modelo actual
         model_info = [
             vedo.Text2D("📱 Modelos 3D: Postura Correcta y Postura Incorrecta", pos=(0.02, 0.95), s=1.0, c='purple', bold=True),
+            vedo.Text2D("💡 Cierra esta ventana para que no se reabra automáticamente", pos=(0.02, 0.90), s=0.8, c='orange', bold=True),
         ]
         
         # Controles simplificados - solo mouse
-        controls_y_start = 0.85
+        controls_y_start = 0.82
         instructions = [
             vedo.Text2D("🖱️  CONTROLES:", pos=(0.02, controls_y_start), s=1.0, c='darkblue', bold=True),
             vedo.Text2D("• Arrastrar: Rotar vista", pos=(0.02, controls_y_start - 0.03), s=0.8, c='black'),
@@ -442,15 +455,27 @@ class Pose3DVisualizer:
     
     def show_in_thread(self):
         """
-        Muestra la visualización 3D en un hilo separado
+        Muestra la visualización 3D en un hilo separado, respetando cierre manual
         """
+        import time
+        
+        # Si fue cerrada manualmente, no reabrir por 10 segundos
+        if self.manually_closed:
+            current_time = time.time()
+            if current_time - self.last_show_time < 10:
+                return
+            else:
+                # Reiniciar después de 10 segundos
+                self.manually_closed = False
+        
         if self.thread is None or not self.thread.is_alive():
+            self.last_show_time = time.time()
             self.thread = Thread(target=self.show_correct_posture, daemon=True)
             self.thread.start()
     
     def close(self):
         """
-        Cierra la ventana 3D
+        Cierra la ventana 3D programáticamente
         """
         if self.plotter is not None:
             self.plotter.close()
@@ -460,4 +485,4 @@ class Pose3DVisualizer:
         """
         Verifica si la ventana 3D está abierta
         """
-        return self.is_showing
+        return self.is_showing and not self.manually_closed

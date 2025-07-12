@@ -44,34 +44,59 @@ class PostureAnalysisSystem:
         
         print("Cámara configurada correctamente")
     
-    def draw_posture_info(self, image, is_bad_posture, posture_issues):
+    def draw_posture_info(self, image, is_bad_posture, posture_issues, calibration_status):
         """
-        Dibuja información de postura en la imagen
+        Dibuja información de postura en la imagen incluyendo estado de calibración
         """
         height, width = image.shape[:2]
         
-        # Determinar color y mensaje
-        if is_bad_posture:
-            color = (0, 0, 255)  # Rojo
-            status = "MALA POSTURA"
+        # === CALIBRACIÓN ===
+        if calibration_status['calibrating']:
+            color = (0, 255, 255)  # Amarillo
+            status = f"CALIBRANDO... {calibration_status['progress']:.0f}%"
             
-            # Mostrar problemas específicos
-            y_offset = 60
-            for issue in posture_issues:
-                cv2.putText(image, f"• {issue}", (10, y_offset), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-                y_offset += 25
-                
-        else:
-            color = (0, 255, 0)  # Verde
-            status = "POSTURA CORRECTA"
+            # Dibujar barra de progreso
+            bar_width = 280
+            bar_height = 10
+            progress_width = int((calibration_status['progress'] / 100) * bar_width)
+            
+            # Fondo de la barra
+            cv2.rectangle(image, (10, 60), (10 + bar_width, 60 + bar_height), (100, 100, 100), -1)
+            # Progreso
+            cv2.rectangle(image, (10, 60), (10 + progress_width, 60 + bar_height), color, -1)
+            
+            # Instrucciones de calibración
+            cv2.putText(image, "Mantén POSTURA CORRECTA por 2 segundos", (10, 90), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            cv2.putText(image, "• Espalda recta • Hombros relajados", (10, 115), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+            cv2.putText(image, "• Cabeza alineada • Sin encorvarse", (10, 135), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
         
-        # Dibujar rectángulo de estado
+        # === ANÁLISIS DE POSTURA ===
+        else:
+            # Determinar color y mensaje
+            if is_bad_posture:
+                color = (0, 0, 255)  # Rojo
+                status = "MALA POSTURA"
+                
+                # Mostrar problemas específicos
+                y_offset = 60
+                for issue in posture_issues:
+                    cv2.putText(image, f"• {issue}", (10, y_offset), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                    y_offset += 25
+                    
+            else:
+                color = (0, 255, 0)  # Verde
+                status = "POSTURA CORRECTA"
+        
+        # Dibujar rectángulo de estado principal
         cv2.rectangle(image, (10, 10), (300, 50), color, -1)
         cv2.putText(image, status, (20, 35), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
         
-        # Instrucciones
+        # Instrucciones generales
         cv2.putText(image, "Presiona 'q' para salir", (10, height - 20), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
@@ -79,14 +104,14 @@ class PostureAnalysisSystem:
     
     def handle_bad_posture(self):
         """
-        Maneja la detección de mala postura
+        Maneja la detección de mala postura con mejor control de ventana
         """
         current_time = time.time()
         
         if self.bad_posture_start_time is None:
             self.bad_posture_start_time = current_time
         
-        # Si ha pasado el tiempo de espera, mostrar visualización 3D
+        # Si ha pasado el tiempo de espera y la ventana no está abierta o fue cerrada manualmente
         if (current_time - self.bad_posture_start_time) > self.warning_delay:
             if not self.visualizer.is_open():
                 print("⚠️  Mala postura detectada por más de 3 segundos")
@@ -99,16 +124,13 @@ class PostureAnalysisSystem:
         """
         self.bad_posture_start_time = None
         
-        # Opcional: cerrar visualizador después de un tiempo con buena postura
-        # (comentado para permitir que el usuario explore el modelo 3D)
-        # if self.visualizer.is_open():
-        #     self.visualizer.close()
+        # No cerrar automáticamente - dejar que el usuario controle la ventana
     
     def run(self):
         """
-        Ejecuta el bucle principal del sistema
+        Ejecuta el bucle principal del sistema con calibración inicial
         """
-        print("🚀 Iniciando Sistema de Análisis Postural")
+        print("🚀 Iniciando Sistema de Análisis Postural MEJORADO")
         print("📷 Configurando cámara...")
         
         try:
@@ -118,10 +140,14 @@ class PostureAnalysisSystem:
             return
         
         print("✅ Sistema listo!")
-        print("💡 Siéntate frente a la cámara")
+        print("💡 Siéntate frente a la cámara en POSTURA CORRECTA")
         print("📏 Mantén una distancia de 60-100cm de la cámara")
-        print("⚠️  Si detectas mala postura por 3+ segundos, se abrirá guía 3D")
+        print("🎯 El sistema se calibrará automáticamente en 2 segundos")
+        print("⚠️  Después, detectará cambios en tu postura")
         print("=" * 60)
+        
+        # Iniciar calibración
+        self.detector.start_calibration()
         
         self.running = True
         frame_count = 0
@@ -137,20 +163,21 @@ class PostureAnalysisSystem:
                 # Espejo horizontal para mayor naturalidad
                 frame = cv2.flip(frame, 1)
                 
-                # Detectar postura
-                processed_frame, is_bad_posture, posture_issues = self.detector.detect_posture(frame)
+                # Detectar postura con nuevo sistema
+                processed_frame, is_bad_posture, posture_issues, calibration_status = self.detector.detect_posture(frame)
                 
                 # Dibujar información en la imagen
-                display_frame = self.draw_posture_info(processed_frame, is_bad_posture, posture_issues)
+                display_frame = self.draw_posture_info(processed_frame, is_bad_posture, posture_issues, calibration_status)
                 
-                # Manejar estado de postura
-                if is_bad_posture:
-                    self.handle_bad_posture()
-                else:
-                    self.handle_good_posture()
+                # Solo manejar postura si ya está calibrado
+                if not calibration_status['calibrating']:
+                    if is_bad_posture:
+                        self.handle_bad_posture()
+                    else:
+                        self.handle_good_posture()
                 
                 # Mostrar frame
-                cv2.imshow('Análisis de Postura Corporal', display_frame)
+                cv2.imshow('Análisis de Postura Corporal - SISTEMA MEJORADO', display_frame)
                 
                 # Control de FPS y salida
                 key = cv2.waitKey(1) & 0xFF
@@ -160,13 +187,17 @@ class PostureAnalysisSystem:
                 
                 frame_count += 1
                 
-                # Debug info cada 30 frames
-                if frame_count % 30 == 0:
+                # Debug info solo después de calibración
+                if frame_count % 30 == 0 and not calibration_status['calibrating']:
                     status = "❌ MALA" if is_bad_posture else "✅ BUENA"
                     print(f"Frame {frame_count}: Postura {status}")
                     if posture_issues:
                         for issue in posture_issues:
                             print(f"  - {issue}")
+                
+                # Mostrar cuando calibración se complete
+                if calibration_status['complete'] and frame_count == 1:
+                    print("🎉 ¡Calibración completada! Ahora detectando cambios de postura...")
         
         except KeyboardInterrupt:
             print("\n🛑 Interrumpido por usuario")
@@ -199,15 +230,23 @@ def main():
     """
     Función principal
     """
-    print("=" * 60)
-    print("🎯 SISTEMA DE DETECCIÓN DE POSTURA CORPORAL")
-    print("=" * 60)
-    print("📋 Funcionalidades:")
-    print("   • Análisis de postura en tiempo real")
-    print("   • Detección de cabeza adelantada, hombros desalineados")
-    print("   • Visualización 3D interactiva de postura correcta")
-    print("   • Rotación con mouse y zoom disponible")
-    print("=" * 60)
+    print("=" * 70)
+    print("🎯 SISTEMA DE DETECCIÓN DE POSTURA CORPORAL - VERSIÓN MEJORADA")
+    print("=" * 70)
+    print("📋 NUEVAS FUNCIONALIDADES:")
+    print("   • 🎯 Calibración automática de postura correcta personal")
+    print("   • 📐 Análisis avanzado con ángulos y coordenadas 3D")
+    print("   • 🔍 Detección precisa de hombros levantados")
+    print("   • 🕒 Filtrado temporal para evitar falsos positivos")
+    print("   • 📊 Umbrales adaptativos por usuario")
+    print("   • 👥 Detección mejorada de cabeza adelantada")
+    print("=" * 70)
+    print("📖 INSTRUCCIONES:")
+    print("   1. Siéntate con POSTURA CORRECTA al iniciar")
+    print("   2. El sistema se calibrará automáticamente (2 segundos)")
+    print("   3. Después detectará cambios en tu postura")
+    print("   4. Mantén espalda recta, hombros relajados, cabeza alineada")
+    print("=" * 70)
     
     # Crear y ejecutar sistema
     system = PostureAnalysisSystem()

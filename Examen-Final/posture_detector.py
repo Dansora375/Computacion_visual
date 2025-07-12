@@ -23,10 +23,24 @@ class PostureDetector:
         )
         self.mp_drawing = mp.solutions.drawing_utils
         
-        # Umbrales para determinar mala postura
-        self.HEAD_FORWARD_THRESHOLD = 15  # grados
-        self.SHOULDER_SLOPE_THRESHOLD = 10  # grados
-        self.SPINE_CURVE_THRESHOLD = 20  # grados
+        # === SISTEMA DE CALIBRACIÓN ===
+        self.is_calibrated = False
+        self.calibration_data = None
+        self.calibration_frames = []
+        self.calibration_frame_count = 0
+        self.CALIBRATION_FRAMES_NEEDED = 60  # 2 segundos a 30 FPS
+        
+        # === FILTRADO TEMPORAL MEJORADO ===
+        self.posture_history = []
+        self.HISTORY_SIZE = 5  # Reducido de 10 a 5 para mayor sensibilidad
+        self.BAD_POSTURE_THRESHOLD = 0.4  # Reducido de 0.6 a 0.4 (40% en lugar de 60%)
+        
+        # === UMBRALES ADAPTATIVOS MEJORADOS ===
+        self.head_forward_threshold = 0.04  # Más sensible
+        self.shoulder_height_threshold = 0.025  # Más sensible
+        self.shoulder_elevation_threshold = 8  # Más sensible (era 10)
+        self.spine_angle_threshold = 12  # Más sensible (era 15)
+        self.neck_angle_threshold = 15  # Más sensible (era 20)
         
     def calculate_angle(self, point1, point2, point3):
         """
@@ -49,80 +63,102 @@ class PostureDetector:
     
     def analyze_head_position(self, landmarks):
         """
-        Analiza si la cabeza está muy adelantada (texto neck)
+        Analiza si la cabeza está muy adelantada usando coordenadas Z y ángulo del cuello
         """
-        # Puntos: nariz, cuello, hombro
-        nose = [landmarks[self.mp_pose.PoseLandmark.NOSE.value].x,
-                landmarks[self.mp_pose.PoseLandmark.NOSE.value].y]
+        if not self.is_calibrated:
+            return False
         
-        left_shoulder = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                        landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        points = self.extract_key_points(landmarks)
+        measurements = self.calculate_posture_measurements(points)
         
-        right_shoulder = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-                         landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+        # Comparar con valores de calibración
+        head_forward_distance = measurements['head_forward_distance']
+        neck_angle = abs(measurements['neck_angle'])
         
-        # Punto medio de los hombros
-        shoulder_midpoint = [(left_shoulder[0] + right_shoulder[0]) / 2,
-                            (left_shoulder[1] + right_shoulder[1]) / 2]
+        # Detectar cabeza adelantada por distancia Z o ángulo excesivo
+        is_head_forward = (head_forward_distance > self.head_forward_threshold or 
+                          neck_angle > self.neck_angle_threshold)
         
-        # Calcular desplazamiento horizontal de la cabeza
-        head_offset = abs(nose[0] - shoulder_midpoint[0])
-        
-        # Si la cabeza está muy adelante, es mala postura
-        return head_offset > 0.05  # Umbral ajustable
+        return is_head_forward
     
     def analyze_shoulder_alignment(self, landmarks):
         """
-        Analiza si los hombros están desalineados
+        Analiza desalineación de hombros (altura) y elevación excesiva
         """
-        left_shoulder = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                        landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        if not self.is_calibrated:
+            return False
         
-        right_shoulder = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-                         landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+        points = self.extract_key_points(landmarks)
+        measurements = self.calculate_posture_measurements(points)
         
-        # Calcular inclinación de los hombros
-        slope = abs(left_shoulder[1] - right_shoulder[1])
+        # Verificar diferencia de altura
+        height_diff = measurements['shoulder_height_diff']
+        is_height_misaligned = height_diff > self.shoulder_height_threshold
         
-        # Si hay mucha diferencia en altura, es mala postura
-        return slope > 0.03  # Umbral ajustable
+        # Verificar elevación excesiva (hombros muy levantados)
+        elevation_angle = abs(measurements['shoulder_elevation_angle'])
+        is_elevated = elevation_angle > self.shoulder_elevation_threshold
+        
+        return is_height_misaligned or is_elevated
     
     def analyze_spine_curvature(self, landmarks):
         """
-        Analiza la curvatura de la columna (básico)
+        Analiza la curvatura excesiva de la columna
         """
-        # Puntos: hombros, caderas
-        left_shoulder = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                        landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        if not self.is_calibrated:
+            return False
         
-        right_shoulder = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-                         landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+        points = self.extract_key_points(landmarks)
+        measurements = self.calculate_posture_measurements(points)
         
-        left_hip = [landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].x,
-                   landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].y]
+        # Verificar ángulo de la columna
+        spine_angle = abs(measurements['spine_angle'])
+        is_spine_curved = spine_angle > self.spine_angle_threshold
         
-        right_hip = [landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].x,
-                    landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].y]
+        return is_spine_curved
+    
+    def analyze_shoulder_elevation(self, landmarks):
+        """
+        Analiza específicamente si los hombros están muy levantados
+        """
+        if not self.is_calibrated:
+            return False
         
-        # Puntos medios
-        shoulder_mid = [(left_shoulder[0] + right_shoulder[0]) / 2,
-                       (left_shoulder[1] + right_shoulder[1]) / 2]
+        points = self.extract_key_points(landmarks)
         
-        hip_mid = [(left_hip[0] + right_hip[0]) / 2,
-                  (left_hip[1] + right_hip[1]) / 2]
+        # Calcular altura de hombros relativa a las caderas
+        shoulder_mid_y = (points['left_shoulder'][1] + points['right_shoulder'][1]) / 2
+        hip_mid_y = (points['left_hip'][1] + points['right_hip'][1]) / 2
         
-        # Verificar si el torso está muy inclinado
-        torso_angle = abs(shoulder_mid[0] - hip_mid[0])
+        # En calibración, calcular la distancia normal hombro-cadera
+        calibration_shoulder_hip_distance = None
+        if hasattr(self, 'calibration_data') and self.calibration_data:
+            # Calcular distancia promedio durante calibración
+            distances = []
+            for frame in self.calibration_frames:
+                frame_shoulder_y = (frame['left_shoulder'][1] + frame['right_shoulder'][1]) / 2
+                frame_hip_y = (frame['left_hip'][1] + frame['right_hip'][1]) / 2
+                distances.append(abs(frame_hip_y - frame_shoulder_y))
+            calibration_shoulder_hip_distance = np.mean(distances)
         
-        return torso_angle > 0.04  # Umbral ajustable
+        # Comparar distancia actual vs calibración
+        current_distance = abs(hip_mid_y - shoulder_mid_y)
+        
+        if calibration_shoulder_hip_distance:
+            # Si la distancia es significativamente menor, los hombros están levantados
+            distance_reduction = calibration_shoulder_hip_distance - current_distance
+            threshold = calibration_shoulder_hip_distance * 0.15  # 15% de reducción
+            return distance_reduction > threshold
+        
+        return False
     
     def detect_posture(self, image):
         """
-        Detecta la postura en una imagen
+        Detecta la postura en una imagen con sistema de calibración y filtrado temporal
         Args:
             image: Imagen de OpenCV (BGR)
         Returns:
-            tuple: (image_with_pose, is_bad_posture, posture_issues)
+            tuple: (image_with_pose, is_bad_posture, posture_issues, calibration_status)
         """
         # Convertir BGR a RGB
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -135,35 +171,301 @@ class PostureDetector:
             self.mp_drawing.draw_landmarks(
                 image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
             
-            # Analizar postura
             landmarks = results.pose_landmarks.landmark
             
+            # Si no está calibrado, continuar con calibración
+            if not self.is_calibrated:
+                calibration_complete = self.add_calibration_frame(landmarks)
+                progress = (self.calibration_frame_count / self.CALIBRATION_FRAMES_NEEDED) * 100
+                return image, False, [], {'calibrating': True, 'progress': progress, 'complete': calibration_complete}
+            
+            # Análisis de postura con nuevos métodos mejorados
             posture_issues = []
             
             # Verificar diferentes aspectos de la postura
             if self.analyze_head_position(landmarks):
                 posture_issues.append("Cabeza muy adelantada")
             
+            if self.analyze_head_tilt_down(landmarks):
+                posture_issues.append("Cabeza inclinada hacia abajo")
+            
             if self.analyze_shoulder_alignment(landmarks):
-                posture_issues.append("Hombros desalineados")
+                posture_issues.append("Hombros desalineados/elevados")
             
             if self.analyze_spine_curvature(landmarks):
                 posture_issues.append("Columna encorvada")
             
-            is_bad_posture = len(posture_issues) > 0
+            if self.analyze_shoulder_elevation(landmarks):
+                posture_issues.append("Hombros muy levantados")
             
-            return image, is_bad_posture, posture_issues
+            if self.analyze_forward_lean(landmarks):
+                posture_issues.append("Cuerpo inclinado hacia adelante")
+            
+            # Aplicar filtrado temporal
+            current_bad_posture = len(posture_issues) > 0
+            self.posture_history.append(current_bad_posture)
+            
+            # Mantener historial de tamaño fijo
+            if len(self.posture_history) > self.HISTORY_SIZE:
+                self.posture_history.pop(0)
+            
+            # Determinar postura final basada en historial
+            if len(self.posture_history) >= self.HISTORY_SIZE:
+                bad_posture_ratio = sum(self.posture_history) / len(self.posture_history)
+                final_bad_posture = bad_posture_ratio >= self.BAD_POSTURE_THRESHOLD
+            else:
+                # Si no hay suficiente historial, usar detección actual
+                final_bad_posture = current_bad_posture
+            
+            return image, final_bad_posture, posture_issues, {'calibrating': False, 'progress': 100, 'complete': True}
         
-        return image, False, []
+        # Si no se detecta pose
+        return image, False, [], {'calibrating': not self.is_calibrated, 'progress': 0, 'complete': False}
+    def start_calibration(self):
+        """
+        Inicia el proceso de calibración
+        """
+        self.is_calibrated = False
+        self.calibration_frames = []
+        self.calibration_frame_count = 0
+        print("🎯 Iniciando calibración de postura correcta...")
+        print("📏 Mantén una postura CORRECTA durante 2 segundos")
     
-    def get_pose_landmarks(self, image):
+    def add_calibration_frame(self, landmarks):
         """
-        Obtiene los landmarks de la pose para visualización 3D
+        Añade un frame a la calibración
         """
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = self.pose.process(rgb_image)
+        if self.calibration_frame_count < self.CALIBRATION_FRAMES_NEEDED:
+            # Extraer puntos clave para calibración
+            calibration_points = self.extract_key_points(landmarks)
+            self.calibration_frames.append(calibration_points)
+            self.calibration_frame_count += 1
+            
+            # Mostrar progreso
+            progress = (self.calibration_frame_count / self.CALIBRATION_FRAMES_NEEDED) * 100
+            if self.calibration_frame_count % 10 == 0:
+                print(f"📊 Calibración: {progress:.0f}%")
+            
+            return False  # Aún no terminado
+        else:
+            self.complete_calibration()
+            return True  # Calibración completada
+    
+    def extract_key_points(self, landmarks):
+        """
+        Extrae puntos clave para análisis de postura
+        """
+        points = {}
         
-        if results.pose_landmarks:
-            return results.pose_landmarks.landmark
+        # Cabeza y cuello
+        points['nose'] = [landmarks[self.mp_pose.PoseLandmark.NOSE.value].x,
+                         landmarks[self.mp_pose.PoseLandmark.NOSE.value].y,
+                         landmarks[self.mp_pose.PoseLandmark.NOSE.value].z]
         
-        return None
+        points['left_ear'] = [landmarks[self.mp_pose.PoseLandmark.LEFT_EAR.value].x,
+                             landmarks[self.mp_pose.PoseLandmark.LEFT_EAR.value].y,
+                             landmarks[self.mp_pose.PoseLandmark.LEFT_EAR.value].z]
+        
+        points['right_ear'] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_EAR.value].x,
+                              landmarks[self.mp_pose.PoseLandmark.RIGHT_EAR.value].y,
+                              landmarks[self.mp_pose.PoseLandmark.RIGHT_EAR.value].z]
+        
+        # Hombros
+        points['left_shoulder'] = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+                                  landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y,
+                                  landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].z]
+        
+        points['right_shoulder'] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                                   landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y,
+                                   landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].z]
+        
+        # Caderas
+        points['left_hip'] = [landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].x,
+                             landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].y,
+                             landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].z]
+        
+        points['right_hip'] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].x,
+                              landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].y,
+                              landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].z]
+        
+        return points
+    
+    def complete_calibration(self):
+        """
+        Completa la calibración calculando valores de referencia
+        """
+        if len(self.calibration_frames) < self.CALIBRATION_FRAMES_NEEDED:
+            print("❌ Error: No hay suficientes frames para calibración")
+            return
+        
+        # Calcular promedios de postura correcta
+        self.calibration_data = {}
+        
+        # Promediar todas las mediciones
+        all_measurements = []
+        for frame in self.calibration_frames:
+            measurements = self.calculate_posture_measurements(frame)
+            all_measurements.append(measurements)
+        
+        # Calcular valores de referencia (promedios)
+        self.calibration_data = {
+            'head_forward_distance': np.mean([m['head_forward_distance'] for m in all_measurements]),
+            'shoulder_height_diff': np.mean([m['shoulder_height_diff'] for m in all_measurements]),
+            'neck_angle': np.mean([m['neck_angle'] for m in all_measurements]),
+            'spine_angle': np.mean([m['spine_angle'] for m in all_measurements]),
+            'shoulder_elevation_angle': np.mean([m['shoulder_elevation_angle'] for m in all_measurements])
+        }
+        
+        # Calcular umbrales adaptativos basados en desviación estándar
+        std_multiplier = 1.5  # Reducido de 2.0 para mayor sensibilidad
+        
+        self.head_forward_threshold = self.calibration_data['head_forward_distance'] + (
+            std_multiplier * np.std([m['head_forward_distance'] for m in all_measurements]))
+        
+        self.shoulder_height_threshold = self.calibration_data['shoulder_height_diff'] + (
+            std_multiplier * np.std([m['shoulder_height_diff'] for m in all_measurements]))
+        
+        self.neck_angle_threshold = abs(self.calibration_data['neck_angle']) + (
+            std_multiplier * np.std([m['neck_angle'] for m in all_measurements]))
+        
+        self.spine_angle_threshold = abs(self.calibration_data['spine_angle']) + (
+            std_multiplier * np.std([m['spine_angle'] for m in all_measurements]))
+        
+        self.shoulder_elevation_threshold = abs(self.calibration_data['shoulder_elevation_angle']) + (
+            std_multiplier * np.std([m['shoulder_elevation_angle'] for m in all_measurements]))
+        
+        self.is_calibrated = True
+        print("✅ Calibración completada exitosamente!")
+        print(f"📊 Umbrales adaptativos calculados:")
+        print(f"   • Cabeza adelantada: {self.head_forward_threshold:.3f}")
+        print(f"   • Diferencia hombros: {self.shoulder_height_threshold:.3f}")
+        print(f"   • Ángulo cuello: {self.neck_angle_threshold:.1f}°")
+        print(f"   • Ángulo columna: {self.spine_angle_threshold:.1f}°")
+        print(f"   • Elevación hombros: {self.shoulder_elevation_threshold:.1f}°")
+    
+    def calculate_posture_measurements(self, points):
+        """
+        Calcula todas las mediciones de postura para un conjunto de puntos
+        """
+        measurements = {}
+        
+        # 1. Distancia de cabeza adelantada (usando coordenadas Z)
+        nose_z = points['nose'][2]
+        shoulder_mid_z = (points['left_shoulder'][2] + points['right_shoulder'][2]) / 2
+        measurements['head_forward_distance'] = abs(nose_z - shoulder_mid_z)
+        
+        # 2. Diferencia de altura entre hombros
+        measurements['shoulder_height_diff'] = abs(points['left_shoulder'][1] - points['right_shoulder'][1])
+        
+        # 3. Ángulo del cuello (usando oreja, hombro y vertical)
+        ear_mid = [(points['left_ear'][0] + points['right_ear'][0]) / 2,
+                   (points['left_ear'][1] + points['right_ear'][1]) / 2]
+        shoulder_mid = [(points['left_shoulder'][0] + points['right_shoulder'][0]) / 2,
+                       (points['left_shoulder'][1] + points['right_shoulder'][1]) / 2]
+        
+        # Ángulo entre línea oreja-hombro y vertical
+        neck_vector = [ear_mid[0] - shoulder_mid[0], ear_mid[1] - shoulder_mid[1]]
+        vertical_vector = [0, -1]  # Hacia arriba
+        measurements['neck_angle'] = self.calculate_angle_between_vectors(neck_vector, vertical_vector)
+        
+        # 4. Ángulo de la columna (hombros a caderas)
+        hip_mid = [(points['left_hip'][0] + points['right_hip'][0]) / 2,
+                   (points['left_hip'][1] + points['right_hip'][1]) / 2]
+        
+        spine_vector = [shoulder_mid[0] - hip_mid[0], shoulder_mid[1] - hip_mid[1]]
+        measurements['spine_angle'] = self.calculate_angle_between_vectors(spine_vector, vertical_vector)
+        
+        # 5. Ángulo de elevación de hombros
+        shoulder_vector = [points['right_shoulder'][0] - points['left_shoulder'][0],
+                          points['right_shoulder'][1] - points['left_shoulder'][1]]
+        horizontal_vector = [1, 0]
+        measurements['shoulder_elevation_angle'] = self.calculate_angle_between_vectors(shoulder_vector, horizontal_vector)
+        
+        return measurements
+    
+    def calculate_angle_between_vectors(self, vector1, vector2):
+        """
+        Calcula el ángulo entre dos vectores en grados
+        """
+        v1 = np.array(vector1)
+        v2 = np.array(vector2)
+        
+        # Normalizar vectores
+        v1_norm = v1 / np.linalg.norm(v1)
+        v2_norm = v2 / np.linalg.norm(v2)
+        
+        # Calcular ángulo
+        dot_product = np.dot(v1_norm, v2_norm)
+        dot_product = np.clip(dot_product, -1.0, 1.0)
+        angle = np.arccos(dot_product)
+        
+        return np.degrees(angle)
+    def analyze_head_tilt_down(self, landmarks):
+        """
+        Detecta específicamente cuando la cabeza está inclinada hacia abajo (mirando pantalla)
+        """
+        if not self.is_calibrated:
+            return False
+        
+        # Usar orejas y nariz para detectar inclinación hacia abajo
+        nose = landmarks[self.mp_pose.PoseLandmark.NOSE.value]
+        left_ear = landmarks[self.mp_pose.PoseLandmark.LEFT_EAR.value]
+        right_ear = landmarks[self.mp_pose.PoseLandmark.RIGHT_EAR.value]
+        
+        # Calcular la inclinación de la cabeza
+        ear_mid_y = (left_ear.y + right_ear.y) / 2
+        nose_y = nose.y
+        
+        # Si la nariz está significativamente más abajo que las orejas, la cabeza está caída
+        head_tilt = nose_y - ear_mid_y
+        
+        # Comparar con calibración
+        if hasattr(self, 'calibration_data'):
+            # Durante calibración, calcular inclinación normal
+            calibration_tilts = []
+            for frame in self.calibration_frames:
+                frame_ear_y = (frame['left_ear'][1] + frame['right_ear'][1]) / 2
+                frame_nose_y = frame['nose'][1]
+                calibration_tilts.append(frame_nose_y - frame_ear_y)
+            
+            normal_tilt = np.mean(calibration_tilts)
+            tilt_threshold = normal_tilt + 0.02  # Umbral de 2cm hacia abajo
+            
+            return head_tilt > tilt_threshold
+        
+        return False
+    
+    def analyze_forward_lean(self, landmarks):
+        """
+        Detecta inclinación del cuerpo hacia adelante (encorvamiento)
+        """
+        if not self.is_calibrated:
+            return False
+        
+        # Usar hombros y caderas para detectar inclinación frontal
+        left_shoulder = landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+        right_shoulder = landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+        left_hip = landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value]
+        right_hip = landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value]
+        
+        # Calcular coordenadas Z promedio
+        shoulder_z = (left_shoulder.z + right_shoulder.z) / 2
+        hip_z = (left_hip.z + right_hip.z) / 2
+        
+        # Inclinación hacia adelante: hombros más cerca de la cámara que caderas
+        forward_lean = hip_z - shoulder_z
+        
+        # Comparar con calibración
+        if hasattr(self, 'calibration_data'):
+            calibration_leans = []
+            for frame in self.calibration_frames:
+                frame_shoulder_z = (frame['left_shoulder'][2] + frame['right_shoulder'][2]) / 2
+                frame_hip_z = (frame['left_hip'][2] + frame['right_hip'][2]) / 2
+                calibration_leans.append(frame_hip_z - frame_shoulder_z)
+            
+            normal_lean = np.mean(calibration_leans)
+            lean_threshold = normal_lean - 0.03  # Umbral de inclinación hacia adelante
+            
+            return forward_lean < lean_threshold
+        
+        return False
