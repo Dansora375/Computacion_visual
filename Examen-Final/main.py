@@ -1,6 +1,6 @@
 """
 Sistema de Detección de Postura Corporal en Tiempo Real
-Integra detección de postura con visualización 3D interactiva
+Integra detección de postura con visualización 3D interactiva y estadísticas
 
 Autor: Sistema de Análisis Postural
 Fecha: Julio 2025
@@ -11,6 +11,8 @@ import time
 import threading
 from posture_detector import PostureDetector
 from pose_3d_visualizer import Pose3DVisualizer
+from posture_statistics import PostureStatistics
+from dashboard import PostureDashboard
 
 class PostureAnalysisSystem:
     def __init__(self):
@@ -19,8 +21,11 @@ class PostureAnalysisSystem:
         """
         self.detector = PostureDetector()
         self.visualizer = Pose3DVisualizer()
+        self.statistics = PostureStatistics()
+        self.dashboard = PostureDashboard(self.statistics, self)  # Pasar referencia de self
         self.camera = None
         self.running = False
+        self.camera_paused = False  # Nuevo estado para pausar cámara
         
         # Variables de estado
         self.bad_posture_detected = False
@@ -96,8 +101,25 @@ class PostureAnalysisSystem:
         cv2.putText(image, status, (20, 35), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
         
+        # Agregar información de estadísticas (solo si no está calibrando)
+        if not calibration_status['calibrating']:
+            stats = self.statistics.get_statistics_summary()
+            
+            # Mostrar estadísticas básicas en la esquina superior derecha
+            stats_y = 20
+            cv2.putText(image, f"Sesion: {stats['session_duration_formatted']}", 
+                       (width - 200, stats_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+            cv2.putText(image, f"Buena: {stats['good_percentage']:.1f}%", 
+                       (width - 200, stats_y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            cv2.putText(image, f"Mala: {stats['bad_percentage']:.1f}%", 
+                       (width - 200, stats_y + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+            cv2.putText(image, f"Alertas: {stats['alert_count']}", 
+                       (width - 200, stats_y + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+        
         # Instrucciones generales
-        cv2.putText(image, "Presiona 'q' para salir", (10, height - 20), 
+        cv2.putText(image, "Presiona 'q' para salir, 's' para estadisticas", (10, height - 40), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        cv2.putText(image, "Presiona 'r' para reiniciar estadisticas", (10, height - 20), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
         return image
@@ -118,6 +140,8 @@ class PostureAnalysisSystem:
                 print("⚠️  Mala postura detectada por más de 3 segundos")
                 print("🔄 Abriendo visualización 3D de postura correcta...")
                 self.visualizer.show_in_thread()
+                # Registrar alerta en estadísticas
+                self.statistics.log_alert_opened()
     
     def handle_good_posture(self):
         """
@@ -128,6 +152,22 @@ class PostureAnalysisSystem:
             self.visualizer.allow_reopen()
         
         self.bad_posture_start_time = None
+    
+    def pause_camera_and_show_stats(self):
+        """Pausa la cámara y muestra las estadísticas"""
+        self.camera_paused = True
+        
+        # Cerrar la ventana de OpenCV
+        cv2.destroyAllWindows()
+        
+        # Abrir dashboard
+        self.dashboard.show()
+        print("📊 Cámara pausada, dashboard abierto")
+    
+    def resume_camera_detection(self):
+        """Reanuda la detección con cámara"""
+        self.camera_paused = False
+        print("📷 Cámara reanudada, continuando detección...")
     
     def run(self):
         """
@@ -152,11 +192,19 @@ class PostureAnalysisSystem:
         # Iniciar calibración
         self.detector.start_calibration()
         
+        # Iniciar estadísticas
+        self.statistics.start_session()
+        
         self.running = True
         frame_count = 0
         
         try:
             while self.running:
+                # Si la cámara está pausada, esperar
+                if self.camera_paused:
+                    cv2.waitKey(100)  # Esperar 100ms y verificar de nuevo
+                    continue
+                
                 # Capturar frame
                 ret, frame = self.camera.read()
                 if not ret:
@@ -168,6 +216,10 @@ class PostureAnalysisSystem:
                 
                 # Detectar postura con nuevo sistema
                 processed_frame, is_bad_posture, posture_issues, calibration_status = self.detector.detect_posture(frame)
+                
+                # Actualizar estadísticas (solo si no está calibrando)
+                if not calibration_status['calibrating']:
+                    self.statistics.update_posture_state(not is_bad_posture, posture_issues)
                 
                 # Dibujar información en la imagen
                 display_frame = self.draw_posture_info(processed_frame, is_bad_posture, posture_issues, calibration_status)
@@ -187,6 +239,13 @@ class PostureAnalysisSystem:
                 if key == ord('q'):
                     print("👋 Saliendo del sistema...")
                     break
+                elif key == ord('s'):
+                    print("📊 Pausando cámara y abriendo estadísticas...")
+                    self.pause_camera_and_show_stats()
+                elif key == ord('r'):
+                    print("🔄 Reiniciando estadísticas...")
+                    self.statistics.reset_session()
+                    self.statistics.start_session()
                 
                 frame_count += 1
                 
@@ -219,6 +278,18 @@ class PostureAnalysisSystem:
         
         self.running = False
         
+        # Finalizar sesión de estadísticas y mostrar resumen
+        if self.statistics:
+            self.statistics.end_session()
+            self.statistics.print_summary()
+            
+            # Exportar automáticamente
+            try:
+                export_path = self.statistics.export_to_csv()
+                print(f"📄 Estadísticas exportadas automáticamente: {export_path}")
+            except Exception as e:
+                print(f"⚠️ Error exportando estadísticas: {e}")
+        
         if self.camera:
             self.camera.release()
         
@@ -226,6 +297,9 @@ class PostureAnalysisSystem:
         
         if self.visualizer:
             self.visualizer.close()
+        
+        if self.dashboard:
+            self.dashboard.close()
         
         print("✅ Limpieza completada")
 
@@ -236,19 +310,25 @@ def main():
     print("=" * 70)
     print("🎯 SISTEMA DE DETECCIÓN DE POSTURA CORPORAL - VERSIÓN MEJORADA")
     print("=" * 70)
-    print("📋 NUEVAS FUNCIONALIDADES:")
+    print("📋 FUNCIONALIDADES:")
     print("   • 🎯 Calibración automática de postura correcta personal")
     print("   • 📐 Análisis avanzado con ángulos y coordenadas 3D")
-    print("   • 🔍 Detección precisa de hombros levantados")
+    print("   • 🔍 Detección precisa de múltiples problemas posturales")
     print("   • 🕒 Filtrado temporal para evitar falsos positivos")
-    print("   • 📊 Umbrales adaptativos por usuario")
-    print("   • 👥 Detección mejorada de cabeza adelantada")
+    print("   • 📊 Sistema de estadísticas y dashboard interactivo")
+    print("   • � Exportación automática de datos en CSV")
     print("=" * 70)
     print("📖 INSTRUCCIONES:")
     print("   1. Siéntate con POSTURA CORRECTA al iniciar")
     print("   2. El sistema se calibrará automáticamente (2 segundos)")
     print("   3. Después detectará cambios en tu postura")
     print("   4. Mantén espalda recta, hombros relajados, cabeza alineada")
+    print("=" * 70)
+    print("🎮 CONTROLES:")
+    print("   • 'q' - Salir del sistema")
+    print("   • 's' - Pausar cámara y abrir estadísticas")
+    print("   • 'r' - Reiniciar estadísticas de la sesión")
+    print("   • En estadísticas: 'Volver a Camara' - Reanudar detección")
     print("=" * 70)
     
     # Crear y ejecutar sistema
