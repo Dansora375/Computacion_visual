@@ -71,7 +71,7 @@ class PostureAnalysisSystem:
             cv2.rectangle(image, (10, 60), (10 + progress_width, 60 + bar_height), color, -1)
             
             # Instrucciones de calibración
-            cv2.putText(image, "Mantén POSTURA CORRECTA por 2 segundos", (10, 90), 
+            cv2.putText(image, "Mantén POSTURA CORRECTA por 3 segundos", (10, 90), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
             cv2.putText(image, "• Espalda recta • Hombros relajados", (10, 115), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
@@ -185,7 +185,7 @@ class PostureAnalysisSystem:
         print("✅ Sistema listo!")
         print("💡 Siéntate frente a la cámara en POSTURA CORRECTA")
         print("📏 Mantén una distancia de 60-100cm de la cámara")
-        print("🎯 El sistema se calibrará automáticamente en 2 segundos")
+        print("🎯 El sistema se calibrará automáticamente en 3 segundos")
         print("⚠️  Después, detectará cambios en tu postura")
         print("=" * 60)
         
@@ -316,11 +316,11 @@ def main():
     print("   • 🔍 Detección precisa de múltiples problemas posturales")
     print("   • 🕒 Filtrado temporal para evitar falsos positivos")
     print("   • 📊 Sistema de estadísticas y dashboard interactivo")
-    print("   • � Exportación automática de datos en CSV")
+    print("   • 📄 Exportación automática de datos en CSV")
     print("=" * 70)
     print("📖 INSTRUCCIONES:")
     print("   1. Siéntate con POSTURA CORRECTA al iniciar")
-    print("   2. El sistema se calibrará automáticamente (2 segundos)")
+    print("   2. El sistema se calibrará automáticamente (3 segundos)")
     print("   3. Después detectará cambios en tu postura")
     print("   4. Mantén espalda recta, hombros relajados, cabeza alineada")
     print("=" * 70)

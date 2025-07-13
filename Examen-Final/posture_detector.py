@@ -28,19 +28,19 @@ class PostureDetector:
         self.calibration_data = None
         self.calibration_frames = []
         self.calibration_frame_count = 0
-        self.CALIBRATION_FRAMES_NEEDED = 60  # 2 segundos a 30 FPS
+        self.CALIBRATION_FRAMES_NEEDED = 90  # 3 segundos a 30 FPS para mejor calibración
         
-        # === FILTRADO TEMPORAL MEJORADO ===
+        # === FILTRADO TEMPORAL MÁS TOLERANTE ===
         self.posture_history = []
-        self.HISTORY_SIZE = 5  # Reducido de 10 a 5 para mayor sensibilidad
-        self.BAD_POSTURE_THRESHOLD = 0.4  # Reducido de 0.6 a 0.4 (40% en lugar de 60%)
+        self.HISTORY_SIZE = 8  # Más frames para suavizar
+        self.BAD_POSTURE_THRESHOLD = 0.6  # Más tolerante (60% en lugar de 40%)
         
-        # === UMBRALES ADAPTATIVOS MEJORADOS ===
-        self.head_forward_threshold = 0.04  # Más sensible
-        self.shoulder_height_threshold = 0.025  # Más sensible
-        self.shoulder_elevation_threshold = 8  # Más sensible (era 10)
-        self.spine_angle_threshold = 12  # Más sensible (era 15)
-        self.neck_angle_threshold = 15  # Más sensible (era 20)
+        # === UMBRALES ADAPTATIVOS RELAJADOS ===
+        self.head_forward_threshold = 0.08  # Menos estricto
+        self.shoulder_height_threshold = 0.04  # Menos estricto
+        self.shoulder_elevation_threshold = 15  # Menos estricto
+        self.spine_angle_threshold = 20  # Menos estricto
+        self.neck_angle_threshold = 25  # Menos estricto
         
     def calculate_angle(self, point1, point2, point3):
         """
@@ -64,6 +64,7 @@ class PostureDetector:
     def analyze_head_position(self, landmarks):
         """
         Analiza si la cabeza está muy adelantada usando coordenadas Z y ángulo del cuello
+        Más tolerante con valores de calibración
         """
         if not self.is_calibrated:
             return False
@@ -71,19 +72,29 @@ class PostureDetector:
         points = self.extract_key_points(landmarks)
         measurements = self.calculate_posture_measurements(points)
         
-        # Comparar con valores de calibración
+        # Comparar con valores de calibración de manera más tolerante
         head_forward_distance = measurements['head_forward_distance']
         neck_angle = abs(measurements['neck_angle'])
         
-        # Detectar cabeza adelantada por distancia Z o ángulo excesivo
-        is_head_forward = (head_forward_distance > self.head_forward_threshold or 
-                          neck_angle > self.neck_angle_threshold)
+        # Usar los valores de calibración como referencia base
+        calibrated_head_distance = self.calibration_data['head_forward_distance']
+        calibrated_neck_angle = abs(self.calibration_data['neck_angle'])
+        
+        # Detectar cabeza adelantada solo si excede significativamente los valores calibrados
+        head_forward_exceeded = head_forward_distance > (calibrated_head_distance + self.head_forward_threshold)
+        neck_angle_exceeded = neck_angle > (calibrated_neck_angle + self.neck_angle_threshold)
+        
+        # Solo reportar problema si ambos indicadores están mal O uno está muy mal
+        is_head_forward = (head_forward_exceeded and neck_angle_exceeded) or \
+                         (head_forward_distance > calibrated_head_distance * 2.0) or \
+                         (neck_angle > calibrated_neck_angle * 2.0)
         
         return is_head_forward
     
     def analyze_shoulder_alignment(self, landmarks):
         """
         Analiza desalineación de hombros (altura) y elevación excesiva
+        Más tolerante con valores de calibración
         """
         if not self.is_calibrated:
             return False
@@ -91,19 +102,27 @@ class PostureDetector:
         points = self.extract_key_points(landmarks)
         measurements = self.calculate_posture_measurements(points)
         
-        # Verificar diferencia de altura
+        # Usar valores de calibración como referencia
         height_diff = measurements['shoulder_height_diff']
-        is_height_misaligned = height_diff > self.shoulder_height_threshold
+        calibrated_height_diff = self.calibration_data['shoulder_height_diff']
+        
+        # Solo reportar problema si la diferencia es significativamente mayor que en calibración
+        is_height_misaligned = height_diff > (calibrated_height_diff + self.shoulder_height_threshold)
         
         # Verificar elevación excesiva (hombros muy levantados)
         elevation_angle = abs(measurements['shoulder_elevation_angle'])
-        is_elevated = elevation_angle > self.shoulder_elevation_threshold
+        calibrated_elevation = abs(self.calibration_data['shoulder_elevation_angle'])
         
-        return is_height_misaligned or is_elevated
+        # Solo reportar si la elevación excede significativamente la calibración
+        is_elevated = elevation_angle > (calibrated_elevation + self.shoulder_elevation_threshold)
+        
+        # Ambos problemas deben ser evidentes para reportar
+        return is_height_misaligned and is_elevated
     
     def analyze_spine_curvature(self, landmarks):
         """
         Analiza la curvatura excesiva de la columna
+        Más tolerante con valores de calibración
         """
         if not self.is_calibrated:
             return False
@@ -111,9 +130,12 @@ class PostureDetector:
         points = self.extract_key_points(landmarks)
         measurements = self.calculate_posture_measurements(points)
         
-        # Verificar ángulo de la columna
+        # Usar valor de calibración como referencia
         spine_angle = abs(measurements['spine_angle'])
-        is_spine_curved = spine_angle > self.spine_angle_threshold
+        calibrated_spine_angle = abs(self.calibration_data['spine_angle'])
+        
+        # Solo reportar si el ángulo excede significativamente el valor calibrado
+        is_spine_curved = spine_angle > (calibrated_spine_angle + self.spine_angle_threshold)
         
         return is_spine_curved
     
@@ -229,7 +251,7 @@ class PostureDetector:
         self.calibration_frames = []
         self.calibration_frame_count = 0
         print("🎯 Iniciando calibración de postura correcta...")
-        print("📏 Mantén una postura CORRECTA durante 2 segundos")
+        print("📏 Mantén una postura CORRECTA durante 3 segundos")
     
     def add_calibration_frame(self, landmarks):
         """
@@ -317,22 +339,23 @@ class PostureDetector:
         }
         
         # Calcular umbrales adaptativos basados en desviación estándar
-        std_multiplier = 1.5  # Reducido de 2.0 para mayor sensibilidad
+        std_multiplier = 2.5  # Más tolerante que antes (era 1.5)
+        base_tolerance = 1.3  # Factor adicional para mayor tolerancia
         
-        self.head_forward_threshold = self.calibration_data['head_forward_distance'] + (
-            std_multiplier * np.std([m['head_forward_distance'] for m in all_measurements]))
+        self.head_forward_threshold = (self.calibration_data['head_forward_distance'] + (
+            std_multiplier * np.std([m['head_forward_distance'] for m in all_measurements]))) * base_tolerance
         
-        self.shoulder_height_threshold = self.calibration_data['shoulder_height_diff'] + (
-            std_multiplier * np.std([m['shoulder_height_diff'] for m in all_measurements]))
+        self.shoulder_height_threshold = (self.calibration_data['shoulder_height_diff'] + (
+            std_multiplier * np.std([m['shoulder_height_diff'] for m in all_measurements]))) * base_tolerance
         
-        self.neck_angle_threshold = abs(self.calibration_data['neck_angle']) + (
-            std_multiplier * np.std([m['neck_angle'] for m in all_measurements]))
+        self.neck_angle_threshold = (abs(self.calibration_data['neck_angle']) + (
+            std_multiplier * np.std([m['neck_angle'] for m in all_measurements]))) * base_tolerance
         
-        self.spine_angle_threshold = abs(self.calibration_data['spine_angle']) + (
-            std_multiplier * np.std([m['spine_angle'] for m in all_measurements]))
+        self.spine_angle_threshold = (abs(self.calibration_data['spine_angle']) + (
+            std_multiplier * np.std([m['spine_angle'] for m in all_measurements]))) * base_tolerance
         
-        self.shoulder_elevation_threshold = abs(self.calibration_data['shoulder_elevation_angle']) + (
-            std_multiplier * np.std([m['shoulder_elevation_angle'] for m in all_measurements]))
+        self.shoulder_elevation_threshold = (abs(self.calibration_data['shoulder_elevation_angle']) + (
+            std_multiplier * np.std([m['shoulder_elevation_angle'] for m in all_measurements]))) * base_tolerance
         
         self.is_calibrated = True
         print("✅ Calibración completada exitosamente!")

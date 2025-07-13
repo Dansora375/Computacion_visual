@@ -140,8 +140,49 @@ El sistema funciona mediante un flujo de trabajo integrado que combina:
 
 ### Diagrama de Funcionamiento
 
-```
-[ESPACIO PARA AGREGAR DIAGRAMA DE ARQUITECTURA]
+### Diagrama de Arquitectura (Mermaid)
+
+```mermaid
+flowchart TD
+  subgraph "Interface de Usuario"
+    PDB[PostureDashboard<br/>(dashboard.py)]
+  end
+
+  subgraph "Visualización 3D"
+    P3DV[Pose3DVisualizer<br/>(pose_3d_visualizer.py)]
+  end
+
+  subgraph "Detección"
+    PD[PostureDetector<br/>(posture_detector.py)]
+  end
+
+  subgraph "Estadísticas"
+    PS[PostureStatistics<br/>(posture_statistics.py)]
+  end
+
+  subgraph "Core"
+    PAS[PostureAnalysisSystem<br/>(main.py)]
+    CAM[Cámara Web<br/>(Video Stream)]
+  end
+
+  CAM -->|frames| PD
+  PD -->|update_posture_state()| PS
+  PD -->|start_session(), end_session()| PS
+  PD -->|detect_posture()| PAS
+  PAS -->|show() / pause_camera_and_show_stats()| PDB
+  PAS -->|show_correct_posture()| P3DV
+  PDB -->|get_statistics_summary()| PS
+  PDB -->|export_to_csv()| PS
+
+  %% Relaciones de control
+  PAS -->|setup_camera()| PD
+  PAS -->|resume_camera_detection()| PDB
+  PAS -->|start_session()| PS
+  PAS -->|end_session()| PS
+  PD -->|detect_posture()| PAS
+  PS -->|update_statistics()| PDB
+  PDB -->|show_statistics()| PS
+  P3DV -->|show_correct_posture()| PAS
 ```
 
 ### Relación entre Módulos
