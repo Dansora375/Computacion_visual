@@ -1,0 +1,15 @@
+RESUMEN DE SESIÓN
+Métrica,Valor
+Duración Total,1:11min
+Tiempo Buena Postura,44:17min
+Tiempo Mala Postura,11:49min
+Porcentaje Buena Postura,3705.1%
+Porcentaje Mala Postura,989.4%
+Total de Alertas,1
+
+TIPOS DE PROBLEMAS DETECTADOS
+Tipo de Problema,Cantidad
+Cuerpo Inclinado Hacia Adelante,24
+Cabeza Muy Adelantada,80
+Cabeza Inclinada Hacia Abajo,293
+Hombros Muy Levantados,105

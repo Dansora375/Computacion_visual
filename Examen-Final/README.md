@@ -138,52 +138,10 @@ El sistema funciona mediante un flujo de trabajo integrado que combina:
 4. **Retroalimentación visual inmediata** mediante modelos 3D
 5. **Análisis estadístico** del comportamiento postural del usuario
 
-### Diagrama de Funcionamiento
+### Diagrama de ARQUITECTURA
 
-### Diagrama de Arquitectura (Mermaid)
 
-```mermaid
-flowchart TD
-  subgraph "Interface de Usuario"
-    PDB[PostureDashboard<br/>(dashboard.py)]
-  end
-
-  subgraph "Visualización 3D"
-    P3DV[Pose3DVisualizer<br/>(pose_3d_visualizer.py)]
-  end
-
-  subgraph "Detección"
-    PD[PostureDetector<br/>(posture_detector.py)]
-  end
-
-  subgraph "Estadísticas"
-    PS[PostureStatistics<br/>(posture_statistics.py)]
-  end
-
-  subgraph "Core"
-    PAS[PostureAnalysisSystem<br/>(main.py)]
-    CAM[Cámara Web<br/>(Video Stream)]
-  end
-
-  CAM -->|frames| PD
-  PD -->|update_posture_state()| PS
-  PD -->|start_session(), end_session()| PS
-  PD -->|detect_posture()| PAS
-  PAS -->|show() / pause_camera_and_show_stats()| PDB
-  PAS -->|show_correct_posture()| P3DV
-  PDB -->|get_statistics_summary()| PS
-  PDB -->|export_to_csv()| PS
-
-  %% Relaciones de control
-  PAS -->|setup_camera()| PD
-  PAS -->|resume_camera_detection()| PDB
-  PAS -->|start_session()| PS
-  PAS -->|end_session()| PS
-  PD -->|detect_posture()| PAS
-  PS -->|update_statistics()| PDB
-  PDB -->|show_statistics()| PS
-  P3DV -->|show_correct_posture()| PAS
-```
+![Diagrama](resultado/DiagramaArquitectura.png)
 
 ### Relación entre Módulos
 
@@ -198,13 +156,22 @@ flowchart TD
 ## 🎬 Evidencia de Funcionamiento
 
 ### Detección de Postura en Tiempo Real con aviso de mala postura y Modelo 3D
-[ESPACIO PARA AGREGAR GIF DE DETECCIÓN DE POSTURA]
+
+![ESPACIO PARA AGREGAR GIF DE DETECCIÓN DE POSTURA](resultado/Postura-Aviso3D.gif)
 
 ### Dashboard de Estadísticas
-[ESPACIO PARA AGREGAR GIF DEL DASHBOARD DE ESTADÍSTICAS]
+
+![ESPACIO PARA AGREGAR GIF DEL DASHBOARD DE ESTADÍSTICAS](resultado/estadisticas.gif)
 
 ### Video Demostrativo Completo
-[ESPACIO PARA AGREGAR ENLACE AL VIDEO]
+
+https://drive.google.com/file/d/1BkSxgs0x9__4xXIp8rPnQHn5flKRTQ54/view?usp=sharing
+
+### Videos separados de la demostracion
+
+https://www.loom.com/share/2ee81ff523664e1793f281c4d6f98377?sid=3fad5605-a03e-4b01-bd59-1cb801e83d31
+
+https://www.loom.com/share/a03d2231ff2b4033930c139186b3707f?sid=0bfe0210-6578-4183-8648-d6df9ec2ef80
 
 ---
 
