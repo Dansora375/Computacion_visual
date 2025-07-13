@@ -46,15 +46,59 @@ python main.py
 - Modelo interactivo de postura correcta
 - **Mouse**: Rotar vista
 - **Rueda**: Zoom in/out
+- **N/P**: Cambiar entre modelos (si hay múltiples)
+- **Espacio**: Pausar/reanudar alternancia automática
 
-### 3. Criterios de Detección
+**Dashboard de Estadísticas:**
+- Presiona **'S'** para abrir el dashboard
+- Actualización automática cada segundo
+- Gráficos de distribución de tiempo y problemas detectados
+- Botón "Volver a Cámara" para regresar a la detección
+
+### 3. Controles del Teclado
+
+**Durante la detección:**
+- **Q**: Salir del programa
+- **S**: Abrir dashboard de estadísticas
+- **R**: Reiniciar estadísticas de la sesión actual
+### 4. Criterios de Detección
 
 El sistema detecta:
 - **Cabeza adelantada**: "Text neck" típico de pantallas
+- **Cabeza inclinada hacia abajo**: Mirando demasiado hacia la pantalla  
 - **Hombros desalineados**: Un hombro más alto que otro
+- **Hombros levantados**: Elevación excesiva por tensión
 - **Columna encorvada**: Espalda muy inclinada hacia adelante
+- **Cuerpo inclinado hacia adelante**: Encorvamiento frontal general
 
-### 4. Cómo Lograr Postura Correcta
+### 5. Sistema de Calibración Personal
+
+**Proceso automático (2 segundos):**
+1. Al iniciar, mantén una **POSTURA CORRECTA**
+2. El sistema aprende tu anatomía específica
+3. Ajusta los umbrales de detección a tu cuerpo
+4. Después detecta cambios basados en TU postura ideal
+
+### 6. Dashboard de Estadísticas
+
+**Cómo acceder:**
+- Presiona **'S'** durante la detección
+- Se pausa la cámara y se abre el dashboard
+
+**Información mostrada:**
+- Tiempo total de sesión
+- Porcentaje de tiempo con buena/mala postura
+- Número total de alertas
+- Gráfico de tipos de problemas detectados
+- Distribución de tiempo en forma circular
+
+**Funciones disponibles:**
+- **Actualización automática**: Cada segundo sin presionar botones
+- **Exportar CSV**: Guardar datos para análisis posterior
+- **Reiniciar**: Borrar estadísticas actuales
+- **Volver a Cámara**: Regresar a la detección
+
+### 7. Cómo Lograr Postura Correcta
 
 **✅ Postura Ideal:**
 - Cabeza alineada sobre los hombros
@@ -92,10 +136,12 @@ El sistema detecta:
 
 ## ⚡ Consejos de Uso
 
-1. **Calibración**: Al iniciar, adopta una postura correcta por unos segundos
-2. **Sensibilidad**: El sistema es sensible; pequeños movimientos pueden cambiar el estado
+1. **Calibración automática**: El sistema se calibra automáticamente en los primeros 2 segundos
+2. **Sensibilidad personalizada**: Los umbrales se adaptan a tu anatomía específica
 3. **Persistencia**: Solo se activa la alerta 3D después de 3 segundos de mala postura
 4. **Multitarea**: Puedes usar el sistema mientras trabajas en otras ventanas
+5. **Estadísticas**: Usa 'S' para ver tu progreso sin interrumpir la sesión
+6. **Modelos múltiples**: Si tienes varios modelos 3D, usa N/P para alternar entre ellos
 
 ## 🎨 Personalización
 
